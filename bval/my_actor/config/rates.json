@@ -1,0 +1,743 @@
+{
+  "version": "2026-11-22.2",
+  "currency": {
+    "base": "USD",
+    "usd_inr": 93.5,
+    "rounding": {
+      "usd": 10,
+      "inr": 500
+    },
+    "india_market_factor_by_tier": {
+      "nano": 0.2,
+      "micro": 0.25,
+      "mid": 0.4,
+      "macro": 0.55,
+      "mega": 0.55
+    },
+    "india_gst_pct": 18
+  },
+  "tier_bounds": {
+    "nano": [
+      1000,
+      10000
+    ],
+    "micro": [
+      10000,
+      100000
+    ],
+    "mid": [
+      100000,
+      500000
+    ],
+    "macro": [
+      500000,
+      1000000
+    ],
+    "mega": [
+      1000000,
+      null
+    ]
+  },
+  "engagement_curve": {
+    "at_zero": 0.8,
+    "at_low": 1.0,
+    "at_high": 1.15,
+    "at_2x_high": 1.25,
+    "cap": 1.25,
+    "hidden_likes_adj": 1.0
+  },
+  "platforms": {
+    "instagram": {
+      "audience_metric": "followersCount",
+      "sampling": {
+        "items": 30,
+        "min_valid": 6,
+        "min_age_days": 3,
+        "max_age_days": 120
+      },
+      "deliverables": {
+        "instagram_reel": {
+          "cpm_usd": 20,
+          "ratio": 1.0,
+          "views_basis": "median(videoPlayCount>igPlayCount>videoViewCount), productType=clips",
+          "clamp_usd": {
+            "nano": [
+              100,
+              500
+            ],
+            "micro": [
+              200,
+              2500
+            ],
+            "mid": [
+              1000,
+              6000
+            ],
+            "macro": [
+              2400,
+              10000
+            ],
+            "mega": [
+              4000,
+              50000
+            ]
+          }
+        },
+        "instagram_story_frame": {
+          "priced_from": "instagram_reel",
+          "ratio": 0.275,
+          "optional": true
+        },
+        "instagram_static_post": {
+          "priced_from": "instagram_reel",
+          "ratio": 0.55,
+          "optional": true
+        },
+        "instagram_carousel": {
+          "priced_from": "instagram_reel",
+          "ratio": 0.75,
+          "optional": true
+        }
+      },
+      "engagement": {
+        "enabled": true,
+        "formula": "(likesCount + commentsCount) / views",
+        "bands": [
+          {
+            "audience": [
+              0,
+              10000
+            ],
+            "low": 0.0228,
+            "high": 0.0607
+          },
+          {
+            "audience": [
+              10000,
+              50000
+            ],
+            "low": 0.0202,
+            "high": 0.0537
+          },
+          {
+            "audience": [
+              50000,
+              100000
+            ],
+            "low": 0.0193,
+            "high": 0.0512
+          },
+          {
+            "audience": [
+              100000,
+              500000
+            ],
+            "low": 0.019,
+            "high": 0.0506
+          },
+          {
+            "audience": [
+              500000,
+              1000000
+            ],
+            "low": 0.02,
+            "high": 0.0532
+          },
+          {
+            "audience": [
+              1000000,
+              null
+            ],
+            "low": 0.017,
+            "high": 0.0452
+          }
+        ]
+      },
+      "follower_fallback_usd_per_1k": 10,
+      "platform_addons": {
+        "whitelisting_name": "meta_partnership_ads",
+        "whitelisting_factor": 1.0,
+        "link_in_bio_7d_pct": 10,
+        "story_link_sticker_pct": 10
+      },
+      "not_applicable": [
+        "pinned_comment_link",
+        "youtube_dedicated",
+        "youtube_mention"
+      ]
+    },
+    "tiktok": {
+      "audience_metric": "authorMeta.fans",
+      "sampling": {
+        "items": 30,
+        "min_valid": 6,
+        "min_age_days": 3,
+        "max_age_days": 120,
+        "volatility_flag_p75_p25": 4.0
+      },
+      "deliverables": {
+        "tiktok_video": {
+          "cpm_usd": 12,
+          "ratio": 1.0,
+          "views_basis": "median(playCount), isSlideshow=false",
+          "clamp_usd": {
+            "nano": [
+              50,
+              250
+            ],
+            "micro": [
+              100,
+              1500
+            ],
+            "mid": [
+              600,
+              3500
+            ],
+            "macro": [
+              1400,
+              6000
+            ],
+            "mega": [
+              2800,
+              20000
+            ]
+          }
+        }
+      },
+      "engagement": {
+        "enabled": true,
+        "formula": "(diggCount + commentCount + shareCount) / playCount",
+        "bands": [
+          {
+            "audience": [
+              0,
+              null
+            ],
+            "low": 0.03,
+            "high": 0.09
+          }
+        ]
+      },
+      "follower_fallback_usd_per_1k": 6,
+      "platform_addons": {
+        "whitelisting_name": "tiktok_spark_ads",
+        "whitelisting_factor": 0.85,
+        "link_in_bio_7d_pct": 10
+      },
+      "not_applicable": [
+        "story_link_sticker",
+        "pinned_comment_link",
+        "instagram_static_post",
+        "instagram_carousel",
+        "youtube_dedicated"
+      ]
+    },
+    "youtube": {
+      "audience_metric": "numberOfSubscribers",
+      "sampling": {
+        "long_form": {
+          "items": 30,
+          "min_valid": 6,
+          "min_age_days": 30,
+          "max_age_days": 365,
+          "fallback_min_age_days": 7
+        },
+        "shorts": {
+          "items": 30,
+          "min_valid": 6,
+          "min_age_days": 3,
+          "max_age_days": 120
+        }
+      },
+      "deliverables": {
+        "youtube_integration": {
+          "cpm_usd": 22,
+          "ratio": 1.0,
+          "views_basis": "median(viewCount), type=video, age 30-365d",
+          "clamp_usd": {
+            "nano": [
+              45,
+              550
+            ],
+            "micro": [
+              220,
+              5500
+            ],
+            "mid": [
+              1980,
+              13750
+            ],
+            "macro": [
+              2200,
+              27500
+            ],
+            "mega": [
+              4400,
+              55000
+            ]
+          }
+        },
+        "youtube_mention_15_30s": {
+          "priced_from": "youtube_integration",
+          "ratio": 0.65
+        },
+        "youtube_dedicated": {
+          "priced_from": "youtube_integration",
+          "ratio": 2.5,
+          "clamp_rule": "integration_clamp_x_ratio"
+        },
+        "youtube_short": {
+          "cpm_usd": 8,
+          "ratio": 1.0,
+          "views_basis": "median(viewCount), type=shorts, age 3-120d",
+          "clamp_usd": {
+            "nano": [
+              50,
+              250
+            ],
+            "micro": [
+              100,
+              1250
+            ],
+            "mid": [
+              500,
+              3000
+            ],
+            "macro": [
+              1200,
+              5000
+            ],
+            "mega": [
+              2000,
+              25000
+            ]
+          }
+        }
+      },
+      "engagement": {
+        "long_form": {
+          "enabled": true,
+          "formula": "(likes + commentsCount) / viewCount",
+          "bands": [
+            {
+              "audience": [
+                0,
+                null
+              ],
+              "low": 0.02,
+              "high": 0.05
+            }
+          ]
+        },
+        "shorts": {
+          "enabled": false
+        }
+      },
+      "follower_fallback_usd_per_1k": null,
+      "platform_addons": {
+        "whitelisting_name": null,
+        "description_link_pct": 0,
+        "pinned_comment_link_pct": 5
+      },
+      "not_applicable": [
+        "whitelisting",
+        "story_link_sticker",
+        "link_in_bio",
+        "instagram_static_post",
+        "instagram_carousel"
+      ]
+    }
+  },
+  "niche_multipliers": {
+    "finance": 1.9,
+    "business_saas": 1.6,
+    "tech": 1.45,
+    "education": 1.25,
+    "health": 1.15,
+    "health_credentialed": 1.5,
+    "fitness": 1.1,
+    "beauty": 1.0,
+    "fashion": 1.0,
+    "travel": 1.1,
+    "lifestyle": 1.0,
+    "food": 0.9,
+    "parenting": 0.95,
+    "entertainment": 0.7,
+    "gaming": 0.55,
+    "other": 1.0,
+    "india_overrides": {
+      "beauty": 1.2
+    }
+  },
+  "addons": {
+    "usage_tier_multiplier": {
+      "nano": 0.6,
+      "micro": 0.8,
+      "mid": 1.0,
+      "macro": 1.25,
+      "mega": 1.5
+    },
+    "organic_usage_pct": {
+      "30": 10,
+      "60": 15,
+      "90": 20,
+      "180": 30,
+      "365": 50,
+      "perpetual": 100
+    },
+    "organic_extra_owned_channel_pct": 10,
+    "paid_usage_pct": {
+      "30": 25,
+      "60": 45,
+      "90": 60,
+      "180": 90,
+      "365": 125,
+      "perpetual": 300
+    },
+    "whitelisting_pct": {
+      "30": 35,
+      "60": 60,
+      "90": 80,
+      "each_extra_30": 25
+    },
+    "whitelisting_ad_spend_pct": 3,
+    "whitelisting_min_usd_per_30d": 100,
+    "exclusivity_category_pct": {
+      "7": 0,
+      "30": 30,
+      "90": 75,
+      "180": 110,
+      "365": 150
+    },
+    "exclusivity_full_factor": 2.0,
+    "exclusivity_crowding_factor": {
+      "crowded": 1.25,
+      "standard": 1.0,
+      "niche": 0.75
+    },
+    "crowded_categories": [
+      "beauty",
+      "fashion",
+      "fitness",
+      "tech",
+      "food"
+    ],
+    "exclusivity_min_usd": 200,
+    "exclusivity_min_pct_of_base": 15,
+    "rush_pct": {
+      "under_72h": 35,
+      "under_24h": 50
+    },
+    "revisions": {
+      "included_rounds": 1,
+      "extra_round_pct": 15,
+      "extra_round_min_usd": 150
+    },
+    "raw_footage_pct": 25,
+    "cross_post_pct_per_platform": 25,
+    "buyout_rule": "paid_usage_pct.perpetual + raw_footage_pct"
+  },
+  "package_discounts_pct": {
+    "2": 10,
+    "3_plus": 15,
+    "max": 25
+  },
+  "negotiation": {
+    "ask_mult": 1.25,
+    "floor_mult": 0.85,
+    "walk_away_mult_of_min_scope": 0.85,
+    "min_scope": {
+      "organic_usage_days": 30,
+      "paid_usage_days": 0,
+      "whitelisting_days": 0,
+      "exclusivity_days": 7,
+      "rush": false
+    },
+    "verdict_thresholds": {
+      "ACCEPT_STRONG": "offer >= ask",
+      "ACCEPT": "offer >= fair",
+      "COUNTER_LIGHT": "offer >= floor",
+      "COUNTER_TRADE_SCOPE": "offer >= walk_away",
+      "DECLINE_OR_REDUCE_SCOPE": "offer < walk_away"
+    },
+    "red_flag_limits": {
+      "paid_usage_days_overbuy": 180,
+      "exclusivity_days_unpaid_max": 7,
+      "payment_terms_days_max": 60,
+      "deposit_pct_min": 50,
+      "included_revisions_max": 2
+    }
+  },
+  "sources": {
+    "currency.usd_inr": [
+      "hdfc_fx_1",
+      "hdfc_fx_2"
+    ],
+    "currency.india_market_factor_by_tier": [
+      "grynow",
+      "upgrowth",
+      "leaddyno",
+      "tryspansa",
+      "assumption"
+    ],
+    "currency.india_gst_pct": [
+      "upgrowth"
+    ],
+    "tier_bounds": [
+      "leaddyno",
+      "grynow"
+    ],
+    "engagement_curve": [
+      "hootsuite",
+      "later2026",
+      "assumption"
+    ],
+    "platforms.instagram.sampling": [
+      "assumption"
+    ],
+    "platforms.instagram.deliverables.instagram_reel.cpm_usd": [
+      "modash_cpm",
+      "imh_ig",
+      "iqfluence"
+    ],
+    "platforms.instagram.deliverables.instagram_reel.ratio": [
+      "assumption"
+    ],
+    "platforms.instagram.deliverables.instagram_reel.clamp_usd": [
+      "leaddyno",
+      "later2026",
+      "assumption"
+    ],
+    "platforms.instagram.deliverables.instagram_story_frame": [
+      "leaddyno",
+      "later2026"
+    ],
+    "platforms.instagram.deliverables.instagram_static_post": [
+      "leaddyno"
+    ],
+    "platforms.instagram.deliverables.instagram_carousel": [
+      "leaddyno",
+      "assumption"
+    ],
+    "platforms.instagram.engagement.bands": [
+      "hypeauditor_er"
+    ],
+    "platforms.instagram.follower_fallback_usd_per_1k": [
+      "buffer_cost",
+      "collabstr_pay"
+    ],
+    "platforms.instagram.platform_addons.whitelisting_factor": [
+      "sozee_wl",
+      "lumanu",
+      "assumption"
+    ],
+    "platforms.instagram.platform_addons.link_in_bio_7d_pct": [
+      "selene",
+      "assumption"
+    ],
+    "platforms.instagram.platform_addons.story_link_sticker_pct": [
+      "assumption"
+    ],
+    "platforms.tiktok.sampling": [
+      "assumption"
+    ],
+    "platforms.tiktok.deliverables.tiktok_video.cpm_usd": [
+      "modash_cpm",
+      "leaddyno"
+    ],
+    "platforms.tiktok.deliverables.tiktok_video.ratio": [
+      "assumption"
+    ],
+    "platforms.tiktok.deliverables.tiktok_video.clamp_usd": [
+      "leaddyno",
+      "assumption"
+    ],
+    "platforms.tiktok.engagement.bands": [
+      "hypeauditor_tt",
+      "dash_social",
+      "assumption"
+    ],
+    "platforms.tiktok.follower_fallback_usd_per_1k": [
+      "leaddyno",
+      "assumption"
+    ],
+    "platforms.tiktok.platform_addons.whitelisting_factor": [
+      "sozee_wl",
+      "assumption"
+    ],
+    "platforms.tiktok.platform_addons.link_in_bio_7d_pct": [
+      "assumption"
+    ],
+    "platforms.youtube.sampling": [
+      "assumption"
+    ],
+    "platforms.youtube.deliverables.youtube_integration.cpm_usd": [
+      "tryspansa",
+      "creatordb_aol",
+      "modash_cpm"
+    ],
+    "platforms.youtube.deliverables.youtube_integration.ratio": [
+      "assumption"
+    ],
+    "platforms.youtube.deliverables.youtube_integration.clamp_usd": [
+      "leaddyno",
+      "impact_yt",
+      "assumption"
+    ],
+    "platforms.youtube.deliverables.youtube_mention_15_30s": [
+      "tryspansa"
+    ],
+    "platforms.youtube.deliverables.youtube_dedicated": [
+      "leaddyno",
+      "tryspansa",
+      "modash_cpm"
+    ],
+    "platforms.youtube.deliverables.youtube_short.cpm_usd": [
+      "tryspansa",
+      "later2026",
+      "assumption"
+    ],
+    "platforms.youtube.deliverables.youtube_short.ratio": [
+      "assumption"
+    ],
+    "platforms.youtube.deliverables.youtube_short.clamp_usd": [
+      "later2026",
+      "assumption"
+    ],
+    "platforms.youtube.engagement.long_form.bands": [
+      "dash_social",
+      "assumption"
+    ],
+    "platforms.youtube.platform_addons": [
+      "assumption"
+    ],
+    "niche_multipliers": [
+      "tryspansa",
+      "leaddyno"
+    ],
+    "niche_multipliers.travel": [
+      "tryspansa",
+      "leaddyno",
+      "assumption"
+    ],
+    "niche_multipliers.parenting": [
+      "tryspansa",
+      "leaddyno",
+      "assumption"
+    ],
+    "niche_multipliers.other": [
+      "assumption"
+    ],
+    "niche_multipliers.india_overrides.beauty": [
+      "upgrowth"
+    ],
+    "addons.usage_tier_multiplier": [
+      "impact_usage"
+    ],
+    "addons.organic_usage_pct": [
+      "toptal_usage",
+      "imh_usage",
+      "upgrowth",
+      "assumption"
+    ],
+    "addons.organic_extra_owned_channel_pct": [
+      "imh_usage",
+      "toptal_usage"
+    ],
+    "addons.paid_usage_pct": [
+      "netinf_33",
+      "netinf_23",
+      "stack",
+      "assumption"
+    ],
+    "addons.whitelisting_pct": [
+      "imh_usage",
+      "netinf_23",
+      "upgrowth",
+      "assumption"
+    ],
+    "addons.whitelisting_ad_spend_pct": [
+      "lumanu",
+      "toptal_usage"
+    ],
+    "addons.whitelisting_min_usd_per_30d": [
+      "socialync",
+      "assumption"
+    ],
+    "addons.exclusivity_category_pct": [
+      "upgrowth",
+      "toptal_usage",
+      "impact_usage",
+      "creatorsjet",
+      "modash_excl"
+    ],
+    "addons.exclusivity_full_factor": [
+      "netinf_23",
+      "assumption"
+    ],
+    "addons.exclusivity_crowding_factor": [
+      "modash_excl",
+      "assumption"
+    ],
+    "addons.exclusivity_min_usd": [
+      "modash_excl"
+    ],
+    "addons.exclusivity_min_pct_of_base": [
+      "assumption"
+    ],
+    "addons.rush_pct": [
+      "influenceflow",
+      "assumption"
+    ],
+    "addons.revisions": [
+      "upgrowth",
+      "backstage",
+      "stack"
+    ],
+    "addons.raw_footage_pct": [
+      "imh_usage"
+    ],
+    "addons.cross_post_pct_per_platform": [
+      "modash_bundling",
+      "assumption"
+    ],
+    "package_discounts_pct": [
+      "templatenet",
+      "upgrowth",
+      "modash_bundling",
+      "assumption"
+    ],
+    "negotiation.ask_mult": [
+      "elev8or",
+      "toptal_usage"
+    ],
+    "negotiation.floor_mult": [
+      "assumption"
+    ],
+    "negotiation.walk_away_mult_of_min_scope": [
+      "assumption"
+    ],
+    "negotiation.min_scope": [
+      "beacons",
+      "modash_excl",
+      "assumption"
+    ],
+    "negotiation.red_flag_limits.paid_usage_days_overbuy": [
+      "netinf_23",
+      "assumption"
+    ],
+    "negotiation.red_flag_limits.exclusivity_days_unpaid_max": [
+      "modash_excl"
+    ],
+    "negotiation.red_flag_limits.payment_terms_days_max": [
+      "elev8or",
+      "assumption"
+    ],
+    "negotiation.red_flag_limits.deposit_pct_min": [
+      "elev8or"
+    ],
+    "negotiation.red_flag_limits.included_revisions_max": [
+      "assumption"
+    ]
+  }
+}

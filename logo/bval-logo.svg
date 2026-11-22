@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>BVAL</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B21B6"/>
+      <stop offset="0.55" stop-color="#A21CAF"/>
+      <stop offset="1" stop-color="#F43F5E"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B21B6"/>
+      <stop offset="1" stop-color="#C026D3"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background tile -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- price tag, tilted -->
+  <g transform="rotate(-18 256 236)">
+    <path d="M150 140 H372 a24 24 0 0 1 24 24 V308 a24 24 0 0 1 -24 24 H150 L84 236 Z"
+          fill="#FFFFFF"/>
+    <circle cx="130" cy="236" r="15" fill="url(#bg)"/>
+    <!-- B monogram -->
+    <text x="282" y="290" text-anchor="middle"
+          font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+          font-weight="800" font-size="150" fill="url(#ink)">B</text>
+    <!-- value-up arrow -->
+    <path d="M338 196 l26 -26 m0 0 h-20 m20 0 v20" stroke="#F43F5E" stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="256" y="452" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-weight="800" font-size="76" letter-spacing="10" fill="#FFFFFF">BVAL</text>
+</svg>
