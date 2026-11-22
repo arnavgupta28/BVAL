@@ -1,0 +1,69 @@
+/* BVAL demo: shared phone frame, glass and bright-card styles (same look as the QUOTE.html report). */
+:root{--bg:#EEEEF0;--ink:#0B0B0C;--muted:#5E5E66;--line:rgba(11,11,12,.09);--desk:#D6D6DC;
+--glass:rgba(255,255,255,.55);--glass-edge:rgba(255,255,255,.85);--glass-in:rgba(255,255,255,.65);--blob:.55;
+--lime:#3BE36B;--yellow:#F4EE3E;--pink:#F26CB5;--blue:#3D8BFF;--lilac:#A68CF7;--on:#0B0B0C;
+--display:'Unbounded','Space Grotesk',-apple-system,'Segoe UI',Arial,sans-serif;--body:'Space Grotesk',-apple-system,'Segoe UI',Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0B0B0C;--ink:#fff;--muted:#9A9AA2;--line:rgba(255,255,255,.08);--desk:#000;
+--glass:rgba(30,30,34,.55);--glass-edge:rgba(255,255,255,.12);--glass-in:rgba(255,255,255,.06);--blob:.32}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);overflow-wrap:anywhere}
+h1,h2,h3,.d{font-family:var(--display);letter-spacing:-.01em;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+
+/* Phone: fills a real phone; on a wider screen it becomes a device with a bezel and a status bar. */
+.phone{position:relative;height:100%}
+.screen{position:relative;height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.blobs{position:absolute;inset:0;pointer-events:none;opacity:var(--blob);filter:blur(60px);
+background:radial-gradient(30% 22% at 10% 12%,var(--lime),transparent 70%),radial-gradient(32% 24% at 95% 40%,var(--pink),transparent 70%),
+radial-gradient(34% 26% at 5% 78%,var(--lilac),transparent 70%),radial-gradient(30% 22% at 90% 95%,var(--blue),transparent 70%)}
+.status{display:none}
+.scroll{position:relative;flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.pad{padding:18px 16px 24px}
+@media (min-width:600px){
+  html,body{background:var(--desk)}
+  body{display:flex;align-items:center;justify-content:center;gap:48px;padding:28px}
+  .phone{flex:none;width:402px;height:min(874px,calc(100vh - 56px));padding:10px;border-radius:58px;background:#0E0E10;
+    box-shadow:0 40px 90px rgba(0,0,0,.35),inset 0 0 0 2px #2C2C31}
+  .screen{border-radius:48px}
+  .status{display:flex;position:relative;z-index:6;justify-content:space-between;align-items:center;padding:12px 28px 6px;font-weight:700;font-size:15px}
+  .status .island{width:112px;height:32px;border-radius:999px;background:#000}
+}
+.side{display:none}
+@media (min-width:1000px){.side{display:block;max-width:300px;color:var(--ink)}}
+.side h1{font-size:34px;line-height:1.05}.side p{color:var(--muted)}
+.side .chip{margin-top:10px}
+
+/* Glass, cards, chips */
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);
+border:1px solid var(--glass-edge);box-shadow:0 12px 40px rgba(0,0,0,.08),inset 0 1px 0 var(--glass-edge)}
+.card{position:relative;border-radius:28px;padding:18px;margin-top:12px}
+.bright{color:var(--on);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -12px 30px rgba(0,0,0,.05);overflow:hidden}
+.g{background:var(--lime)}.y{background:var(--yellow)}.p{background:var(--pink)}.b{background:var(--blue)}.l{background:var(--lilac)}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:500;
+background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.65);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.chip.dark{background:var(--glass-in);border-color:var(--glass-edge)}
+.muted{color:var(--muted)}
+.burst{display:block;width:100%;height:100%}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;cursor:pointer;border-radius:999px;
+padding:12px 12px 12px 22px;font-weight:700;font-size:15px;background:var(--ink);color:var(--bg);text-decoration:none}
+.btn .arrow{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--lime);color:var(--on)}
+.btn.block{width:100%;justify-content:space-between}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.light{background:#fff;color:var(--on)}
+
+/* Report overlay inside the phone */
+.overlay{position:absolute;inset:0;z-index:20;display:none;flex-direction:column;background:var(--bg)}
+.overlay.open{display:flex}
+.overlay .bar{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.overlay iframe{flex:1;width:100%;border:0;background:var(--bg)}
+.back{border:0;cursor:pointer;border-radius:999px;padding:8px 14px;font-weight:600}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 2.4s linear infinite}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rise{animation:rise .35s ease both}

@@ -1,234 +1,497 @@
 {
     "$schema": "https://apify.com/schemas/v1/input.ide.json",
     "title": "BVAL brand deal check",
-    "description": "Paste a creator handle and the brand's offer. BVAL scrapes recent performance, prices every term of the deal from cited 2026 benchmarks, gives a verdict, and drafts the counter-offer email.",
+    "description": "Paste a creator handle and the brand's offer. BVAL reads the creator's real recent views, prices every term of the deal from cited 2026 benchmarks, gives a verdict, and drafts the counter-offer email. Only platform and handle are required.",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
         "platform": {
             "title": "Platform",
             "type": "string",
-            "description": "Where the sponsored content will be posted. Each platform is priced on its own anchor metric: Instagram Reel plays, TikTok plays, YouTube views on videos 30+ days old.",
             "editor": "select",
-            "enum": ["instagram", "tiktok", "youtube"],
-            "enumTitles": ["Instagram", "TikTok", "YouTube (Shorts and long-form)"],
-            "default": "instagram"
+            "description": "Where the sponsored post goes. Each platform is priced on its own metric: Instagram Reel plays, TikTok plays, YouTube views on videos 30+ days old.",
+            "enum": [
+                "instagram",
+                "tiktok",
+                "youtube"
+            ],
+            "enumTitles": [
+                "Instagram",
+                "TikTok",
+                "YouTube (Shorts and long-form)"
+            ],
+            "default": "instagram",
+            "sectionCaption": "1. Creator (required)",
+            "sectionDescription": "Only these two fields are required. Everything below is optional and makes the price more accurate."
         },
         "handle": {
-            "title": "Creator handle or profile URL",
+            "title": "Creator handle or profile link",
             "type": "string",
-            "description": "For example @creator or https://www.instagram.com/creator/. The account must be public.",
             "editor": "textfield",
+            "description": "For example @creator or https://www.instagram.com/creator/. The account must be public. BVAL reads its last ~30 posts to get real median views.",
             "prefill": "humansofny"
         },
-        "creatorName": {
-            "title": "Creator name (for the email sign-off)",
-            "type": "string",
-            "description": "Optional. Defaults to the profile's display name.",
-            "editor": "textfield"
-        },
         "niche": {
-            "title": "Niche",
+            "title": "Content niche",
             "type": "string",
-            "description": "Sets the niche multiplier (finance 1.9x ... gaming 0.55x vs lifestyle 1.0x).",
             "editor": "select",
-            "enum": ["lifestyle", "finance", "business_saas", "tech", "education", "health", "health_credentialed", "fitness", "beauty", "fashion", "travel", "food", "parenting", "entertainment", "gaming", "other"],
-            "enumTitles": ["Lifestyle", "Finance", "Business / SaaS", "Tech", "Education", "Health", "Health (credentialed expert)", "Fitness", "Beauty", "Fashion", "Travel", "Food", "Parenting", "Entertainment", "Gaming", "Other"],
-            "default": "lifestyle"
-        },
-        "deliverables": {
-            "title": "Deliverables",
-            "type": "array",
-            "description": "List of {\"type\", \"qty\"}. Instagram: instagram_reel, instagram_story_frame, instagram_static_post, instagram_carousel. TikTok: tiktok_video. YouTube: youtube_integration, youtube_mention_15_30s, youtube_dedicated, youtube_short. Leave empty for one main deliverable of the chosen platform.",
-            "editor": "json",
-            "prefill": [{ "type": "instagram_reel", "qty": 1 }]
-        },
-        "brandName": {
-            "title": "Brand name",
-            "type": "string",
-            "description": "Used in the counter-offer email.",
-            "editor": "textfield",
-            "prefill": "Acme Protein",
-            "sectionCaption": "The brand's offer"
-        },
-        "offerAmount": {
-            "title": "Brand's offer (amount)",
-            "type": "integer",
-            "description": "What the brand offered for the whole deal. Leave empty to get a quote only.",
-            "minimum": 0,
-            "prefill": 800
-        },
-        "offerCurrency": {
-            "title": "Offer currency",
-            "type": "string",
-            "description": "Currency of the brand's offer. Converted at the market's configured exchange rate.",
-            "editor": "select",
-            "enum": ["USD", "INR", "GBP", "EUR", "BRL", "MXN", "CAD", "AUD", "IDR", "JPY", "PHP"],
-            "default": "USD"
-        },
-        "giftedOnly": {
-            "title": "Product only (gifted, no fee)",
-            "type": "boolean",
-            "description": "Tick if the brand offers only free product.",
-            "default": false
-        },
-        "organicUsageDays": {
-            "title": "Organic usage rights (days)",
-            "type": "integer",
-            "description": "How long the brand may repost the content on its own channels, website or email. 0 = none.",
-            "minimum": 0,
-            "default": 0,
-            "prefill": 90,
-            "sectionCaption": "Usage, ads and exclusivity"
-        },
-        "paidUsageDays": {
-            "title": "Paid usage rights (days)",
-            "type": "integer",
-            "description": "How long the brand may run the content in its own paid ads. 0 = none.",
-            "minimum": 0,
-            "default": 0
-        },
-        "whitelistingDays": {
-            "title": "Whitelisting days (Partnership Ads / Spark Ads)",
-            "type": "integer",
-            "description": "Ads run through the creator's handle: Meta Partnership Ads on Instagram, Spark Ads on TikTok. Not offered on YouTube (priced as paid usage). 0 = none.",
-            "minimum": 0,
-            "default": 0,
-            "prefill": 30
-        },
-        "adSpendUsd": {
-            "title": "Planned ad spend behind whitelisting (USD)",
-            "type": "integer",
-            "description": "Optional. If given, the whitelisting fee is at least 3% of ad spend.",
-            "minimum": 0
-        },
-        "perpetualRights": {
-            "title": "Perpetual rights requested",
-            "type": "boolean",
-            "description": "Tick if the contract asks for usage in perpetuity.",
-            "default": false
-        },
-        "exclusivityDays": {
-            "title": "Exclusivity (days)",
-            "type": "integer",
-            "description": "How long the creator may not work with competitors. Up to 7 days around the post is normally free.",
-            "minimum": 0,
-            "default": 0,
-            "prefill": 180
-        },
-        "exclusivityScope": {
-            "title": "Exclusivity scope",
-            "type": "string",
-            "description": "Category = no direct competitors; full = no other brands at all (priced at 2x).",
-            "editor": "select",
-            "enum": ["category", "full"],
-            "default": "category"
-        },
-        "rushHours": {
-            "title": "Delivery deadline (hours, 0 = standard)",
-            "type": "integer",
-            "description": "Under 72h adds a rush fee (+35%; under 24h +50%).",
-            "minimum": 0,
-            "default": 0,
-            "sectionCaption": "Production and placements"
-        },
-        "revisionRounds": {
-            "title": "Revision rounds requested",
-            "type": "integer",
-            "description": "One round is included; each extra round is priced.",
-            "minimum": 0,
-            "default": 1
-        },
-        "rawFootage": {
-            "title": "Raw footage requested",
-            "type": "boolean",
-            "description": "Unedited files delivered to the brand (+25%).",
-            "default": false
-        },
-        "crossPostPlatforms": {
-            "title": "Cross-post to other platforms",
-            "type": "integer",
-            "description": "Number of extra platforms the same content is posted to (+25% each).",
-            "minimum": 0,
-            "maximum": 5,
-            "default": 0
-        },
-        "linkInBioDays": {
-            "title": "Link in bio (days)",
-            "type": "integer",
-            "description": "Instagram and TikTok only.",
-            "minimum": 0,
-            "default": 0
-        },
-        "storyLinkSticker": {
-            "title": "Story link sticker",
-            "type": "boolean",
-            "description": "Instagram only.",
-            "default": false
-        },
-        "pinnedCommentLink": {
-            "title": "Pinned-comment link",
-            "type": "boolean",
-            "description": "YouTube only. A description link is included in every integration.",
-            "default": false
-        },
-        "paymentTermsDays": {
-            "title": "Payment terms (Net days)",
-            "type": "integer",
-            "description": "Days after delivery the brand pays. Over 60 is flagged.",
-            "minimum": 0,
-            "default": 30,
-            "sectionCaption": "Contract"
-        },
-        "depositPct": {
-            "title": "Deposit (%)",
-            "type": "integer",
-            "description": "Upfront payment the brand offers. Under 50% is flagged.",
-            "minimum": 0,
-            "maximum": 100,
-            "default": 50
-        },
-        "aiTrainingClause": {
-            "title": "AI training or likeness clause",
-            "type": "boolean",
-            "description": "Tick if the contract lets the brand use the content or likeness to train AI.",
-            "default": false
+            "description": "Brands pay more per view in some niches: finance 1.9x, tech 1.45x, lifestyle 1.0x, gaming 0.55x. Pick the closest.",
+            "enum": [
+                "lifestyle",
+                "finance",
+                "business_saas",
+                "tech",
+                "education",
+                "health",
+                "health_credentialed",
+                "fitness",
+                "beauty",
+                "fashion",
+                "travel",
+                "food",
+                "parenting",
+                "entertainment",
+                "gaming",
+                "other"
+            ],
+            "enumTitles": [
+                "Lifestyle",
+                "Finance",
+                "Business / SaaS",
+                "Tech",
+                "Education",
+                "Health",
+                "Health (credentialed expert)",
+                "Fitness",
+                "Beauty",
+                "Fashion",
+                "Travel",
+                "Food",
+                "Parenting",
+                "Entertainment",
+                "Gaming",
+                "Other"
+            ],
+            "default": "lifestyle",
+            "sectionCaption": "2. About the audience (recommended)",
+            "sectionDescription": "Brands pay by niche and by where the audience lives, so these two change the price the most after views."
         },
         "market": {
-            "title": "Audience market (country)",
+            "title": "Audience's main country",
             "type": "string",
-            "description": "Where most of the creator's audience lives, as an ISO country code (US, IN, GB, BR, DE, ID, MX, CA, ...), or GLOBAL for US benchmarks. Brands pay by audience location, so this changes the price; any country works, falling back to its regional group.",
-            "editor": "textfield",
-            "default": "GLOBAL",
-            "sectionCaption": "Market, currency and email"
+            "editor": "select",
+            "description": "Where most of the creator's audience lives (ISO country code). The same views are worth more to brands in some countries. Pick a suggestion or type any code (e.g. FR, JP, NG); unlisted countries use their regional rate. GLOBAL = US benchmarks.",
+            "enumSuggestedValues": [
+                "GLOBAL",
+                "US",
+                "IN",
+                "GB",
+                "DE",
+                "BR",
+                "ID",
+                "MX",
+                "CA"
+            ],
+            "enumTitles": [
+                "Global (US benchmarks)",
+                "United States",
+                "India",
+                "United Kingdom",
+                "Germany",
+                "Brazil",
+                "Indonesia",
+                "Mexico",
+                "Canada"
+            ],
+            "default": "GLOBAL"
+        },
+        "offer": {
+            "title": "The brand's offer",
+            "type": "object",
+            "editor": "schemaBased",
+            "description": "What the brand is paying. No offer yet? Tick the first box and BVAL tells you what to charge.",
+            "sectionCaption": "3. The brand's offer (recommended)",
+            "sectionDescription": "Add the offer to get a verdict (accept / counter / decline). No offer yet? Tick \"No offer yet\": BVAL prices the package you describe below and also suggests per-post rates, add-ons and three ready-made packages to pitch.",
+            "properties": {
+                "noOffer": {
+                    "title": "No offer yet: suggest what I should charge",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Tick if the brand hasn't named a fee, or you're pitching first. The offer amount is ignored. You still get a price for whatever you fill in below (your own package), plus BVAL's recommended rate card: price per post, what each extra adds, and Starter / Standard / Premium packages."
+                },
+                "brandName": {
+                    "title": "Brand name",
+                    "type": "string",
+                    "editor": "textfield",
+                    "description": "Used to address the counter-offer email."
+                },
+                "amount": {
+                    "title": "Offer amount (whole deal)",
+                    "type": "integer",
+                    "editor": "number",
+                    "minimum": 0,
+                    "description": "The total fee the brand offered for everything below."
+                },
+                "currency": {
+                    "title": "Currency",
+                    "type": "string",
+                    "editor": "select",
+                    "enum": [
+                        "USD",
+                        "INR",
+                        "GBP",
+                        "EUR",
+                        "BRL",
+                        "MXN",
+                        "CAD",
+                        "AUD",
+                        "IDR",
+                        "JPY",
+                        "PHP"
+                    ],
+                    "default": "USD",
+                    "description": "Currency of the offer. Converted at a dated exchange rate."
+                },
+                "productOnly": {
+                    "title": "Product only, no fee",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Tick if the brand offers only free product (gifted)."
+                }
+            },
+            "required": [],
+            "additionalProperties": false,
+            "prefill": {
+                "brandName": "Acme Protein",
+                "amount": 800,
+                "currency": "USD"
+            }
+        },
+        "deliverables": {
+            "title": "What the brand wants you to post",
+            "type": "array",
+            "editor": "schemaBased",
+            "description": "Add one row per content type. Leave empty for one main post (Reel, TikTok video or YouTube integration). 2 items get 10% off, 3+ get 15%.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "title": "Content type",
+                        "type": "string",
+                        "editor": "select",
+                        "enum": [
+                            "instagram_reel",
+                            "instagram_story_frame",
+                            "instagram_static_post",
+                            "instagram_carousel",
+                            "tiktok_video",
+                            "youtube_integration",
+                            "youtube_mention_15_30s",
+                            "youtube_dedicated",
+                            "youtube_short"
+                        ],
+                        "enumTitles": [
+                            "Instagram · Reel",
+                            "Instagram · Story frame",
+                            "Instagram · Feed post",
+                            "Instagram · Carousel",
+                            "TikTok · Video",
+                            "YouTube · Integration (60-90s mention)",
+                            "YouTube · Short mention (15-30s)",
+                            "YouTube · Dedicated video",
+                            "YouTube · Short"
+                        ],
+                        "description": "Must match the platform chosen above."
+                    },
+                    "qty": {
+                        "title": "How many",
+                        "type": "integer",
+                        "editor": "number",
+                        "minimum": 1,
+                        "maximum": 20,
+                        "default": 1,
+                        "description": "Number of pieces of this type."
+                    }
+                },
+                "required": [
+                    "type"
+                ],
+                "additionalProperties": false
+            },
+            "prefill": [
+                {
+                    "type": "instagram_reel",
+                    "qty": 1
+                }
+            ]
+        },
+        "rights": {
+            "title": "Rights the brand is asking for",
+            "type": "object",
+            "editor": "schemaBased",
+            "description": "These clauses are where deals get underpriced. Each is priced as its own line. Leave at 0 if the brand didn't ask.",
+            "sectionCaption": "4. Rights and exclusivity (optional, high impact)",
+            "sectionDescription": "Usage, ads through your handle and exclusivity often add 50-200% to the base fee.",
+            "properties": {
+                "organicUsageDays": {
+                    "title": "Brand can repost it on its own channels (days)",
+                    "type": "integer",
+                    "description": "Reposting on the brand's Instagram/website/email. 0 = not asked.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "paidUsageDays": {
+                    "title": "Brand can run it as its own ads (days)",
+                    "type": "integer",
+                    "description": "The brand uses your content in ads from its own account. 0 = not asked.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "whitelistingDays": {
+                    "title": "Ads through your handle: Partnership / Spark Ads (days)",
+                    "type": "integer",
+                    "description": "The brand runs ads from your account (Meta Partnership Ads on Instagram, Spark Ads on TikTok). Not available on YouTube. 0 = not asked.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "adSpendUsd": {
+                    "title": "Planned ad spend behind those ads (USD)",
+                    "type": "integer",
+                    "description": "Optional. If known, the ads fee is at least 3% of ad spend.",
+                    "editor": "number",
+                    "minimum": 0
+                },
+                "perpetualRights": {
+                    "title": "Rights forever (perpetual)",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Tick if the contract asks to use the content forever."
+                },
+                "exclusivityDays": {
+                    "title": "You can't work with competitors for (days)",
+                    "type": "integer",
+                    "description": "Up to 7 days around the post is normally free; longer is priced.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "exclusivityScope": {
+                    "title": "Exclusivity covers",
+                    "type": "string",
+                    "editor": "select",
+                    "enum": [
+                        "category",
+                        "full"
+                    ],
+                    "enumTitles": [
+                        "Direct competitors only",
+                        "All other brands (priced 2x)"
+                    ],
+                    "default": "category",
+                    "description": "Category = only competing brands; full = no other brands at all."
+                }
+            },
+            "required": [],
+            "additionalProperties": false,
+            "prefill": {
+                "organicUsageDays": 90,
+                "whitelistingDays": 30,
+                "exclusivityDays": 180,
+                "exclusivityScope": "category"
+            }
+        },
+        "extras": {
+            "title": "Production extras",
+            "type": "object",
+            "editor": "schemaBased",
+            "description": "Extra work or placements beyond the post itself. Leave defaults if not asked.",
+            "sectionCaption": "5. Extras and contract terms (optional)",
+            "sectionDescription": "Fine-tune the quote and catch risky contract terms.",
+            "properties": {
+                "rushHours": {
+                    "title": "Deadline in hours (0 = normal timeline)",
+                    "type": "integer",
+                    "description": "Under 72h adds +35%, under 24h +50%.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "revisionRounds": {
+                    "title": "Revision rounds requested",
+                    "type": "integer",
+                    "description": "One round is included; each extra round is priced.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 1
+                },
+                "rawFootage": {
+                    "title": "Raw / unedited footage",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Brand wants the source files (+25%)."
+                },
+                "crossPostPlatforms": {
+                    "title": "Also post on other platforms (count)",
+                    "type": "integer",
+                    "description": "Each extra platform for the same content adds 25%.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "maximum": 5,
+                    "default": 0
+                },
+                "linkInBioDays": {
+                    "title": "Link in bio (days)",
+                    "type": "integer",
+                    "description": "Instagram and TikTok only.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "storyLinkSticker": {
+                    "title": "Story link sticker",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Instagram only."
+                },
+                "pinnedCommentLink": {
+                    "title": "Pinned-comment link",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "YouTube only. A description link is always included."
+                }
+            },
+            "required": [],
+            "additionalProperties": false
+        },
+        "contract": {
+            "title": "Contract terms",
+            "type": "object",
+            "editor": "schemaBased",
+            "description": "Payment and legal terms BVAL checks for red flags.",
+            "properties": {
+                "paymentTermsDays": {
+                    "title": "Paid how many days after delivery (Net days)",
+                    "type": "integer",
+                    "description": "Over 60 is flagged.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "default": 30
+                },
+                "depositPct": {
+                    "title": "Upfront deposit (%)",
+                    "type": "integer",
+                    "description": "Under 50% is flagged.",
+                    "editor": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 50
+                },
+                "aiTrainingClause": {
+                    "title": "AI training / likeness clause",
+                    "type": "boolean",
+                    "editor": "checkbox",
+                    "default": false,
+                    "description": "Tick if the brand may use your content or likeness to train AI."
+                }
+            },
+            "required": [],
+            "additionalProperties": false
         },
         "outputCurrency": {
             "title": "Show prices in",
             "type": "string",
-            "description": "USD, or LOCAL for the market's own currency.",
             "editor": "select",
-            "enum": ["USD", "LOCAL"],
-            "default": "USD"
+            "enum": [
+                "USD",
+                "LOCAL"
+            ],
+            "enumTitles": [
+                "US dollars",
+                "Local currency of the audience country"
+            ],
+            "default": "USD",
+            "description": "Local currency works for the named countries (INR, GBP, EUR, BRL, IDR, MXN, CAD).",
+            "sectionCaption": "6. Results (optional)",
+            "sectionDescription": "How you get the answer back."
         },
         "generateEmail": {
-            "title": "Draft the counter-offer email",
+            "title": "Write the counter-offer email",
             "type": "boolean",
-            "description": "Writes a ready-to-send reply using only the computed numbers.",
+            "description": "A ready-to-send reply that uses only the computed numbers (+$0.20).",
+            "editor": "checkbox",
             "default": true
         },
-        "llmModel": {
-            "title": "LLM model (optional)",
+        "creatorName": {
+            "title": "Your name for the email sign-off",
             "type": "string",
-            "description": "OpenRouter model slug for the email, called through Apify's OpenRouter proxy. Leave empty for the default.",
-            "editor": "textfield"
+            "editor": "textfield",
+            "description": "Defaults to the profile's display name."
+        },
+        "sendReportTo": {
+            "title": "Email me the result (optional)",
+            "type": "string",
+            "description": "The email address of your Apify account. BVAL sends you the verdict, the price range, the counter-offer email ready to copy, and a link to the full report. Apify only delivers to your own account's address, so other addresses are skipped. The address is used only to send this email and is not saved in the results.",
+            "editor": "textfield",
+            "pattern": "^$|^[^@\\s,;]+@[^@\\s,;]+\\.[^@\\s,;]+$"
         },
         "manualMetrics": {
-            "title": "Manual metrics (skip scraping)",
+            "title": "Use my own numbers instead of scraping",
             "type": "object",
-            "description": "Optional. {\"followers\": 85000, \"medianViews\": 42000, \"engagementRate\": 0.035}. For YouTube you may add \"medianShortsViews\". Use this to re-price new terms without scraping again.",
-            "editor": "json",
-            "sectionCaption": "Advanced"
+            "editor": "schemaBased",
+            "description": "Fill this to skip scraping (cheaper, instant), e.g. to re-price the same creator with different terms.",
+            "sectionCaption": "Advanced",
+            "properties": {
+                "followers": {
+                    "title": "Followers / subscribers",
+                    "type": "integer",
+                    "description": "Sets the follower tier.",
+                    "editor": "number",
+                    "minimum": 0
+                },
+                "medianViews": {
+                    "title": "Median views per post",
+                    "type": "integer",
+                    "description": "Typical views of a recent post (Reel plays, TikTok plays or YouTube views).",
+                    "editor": "number",
+                    "minimum": 0
+                },
+                "engagementRate": {
+                    "title": "Engagement rate (0-1)",
+                    "type": "number",
+                    "editor": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Likes + comments divided by views, e.g. 0.035 for 3.5%."
+                },
+                "medianShortsViews": {
+                    "title": "Median YouTube Shorts views",
+                    "type": "integer",
+                    "description": "Only for YouTube deals that include Shorts.",
+                    "editor": "number",
+                    "minimum": 0
+                }
+            },
+            "required": [],
+            "additionalProperties": false
+        },
+        "llmModel": {
+            "title": "Email AI model (optional)",
+            "type": "string",
+            "editor": "textfield",
+            "description": "OpenRouter model ID used through Apify's OpenRouter proxy. Leave empty for the default."
         }
     },
-    "required": ["platform", "handle"]
+    "required": [
+        "platform",
+        "handle"
+    ]
 }

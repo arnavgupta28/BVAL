@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BVAL · Creator agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Unbounded:wght@500;700&display=swap">
+<link rel="stylesheet" href="/static/phone.css">
+<style>
+.head{position:relative;z-index:5;display:flex;align-items:center;gap:12px;margin:4px 12px 0;padding:10px 14px;border-radius:26px}
+.av{flex:none;width:42px;height:42px;border-radius:15px;background:var(--lime);color:var(--on);display:grid;place-items:center;padding:9px}
+.head b{display:block;font-family:var(--display);font-size:15px}.head small{color:var(--muted);font-size:12px}
+.head small i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);margin-right:5px;font-style:normal}
+.chat{padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px}
+.day{align-self:center;font-size:11px;color:var(--muted);padding:3px 10px;border-radius:999px}
+.msg{max-width:84%;padding:11px 14px;border-radius:22px;white-space:pre-wrap;font-size:14.5px}
+.me{align-self:flex-end;background:var(--ink);color:var(--bg);border-bottom-right-radius:8px}
+.bot{align-self:flex-start;border-bottom-left-radius:8px}
+.bot a{font-weight:600;word-break:break-all}
+.tool{align-self:stretch;margin:0}.tool .tb{position:absolute;right:-8px;top:-8px;width:74px;height:74px}
+.tool .d{font-size:15px;font-weight:700}.fields{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-width:calc(100% - 30px)}
+.steps{margin:10px 0 0;padding:0;list-style:none;font-size:12.5px}.steps li{margin-top:3px}.steps li::before{content:"✦ "}
+.steps li.now{font-weight:700}
+.verdict{margin:0}.verdict .vb{position:absolute;right:-8px;top:-8px;width:80px;height:80px}
+.verdict .vt{font-size:20px;font-weight:700;max-width:78%}.verdict .vs{font-weight:600;font-size:13.5px;margin:8px 0 10px;max-width:calc(100% - 30px)}
+.minis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mini{border-radius:20px;padding:10px 12px;color:var(--on);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}.mini b{display:block;font-size:17px;margin-top:5px}
+.links{display:flex;gap:8px;flex-wrap:wrap}.links .btn{padding:9px 9px 9px 16px;font-size:13px}.links .btn .arrow{width:26px;height:26px}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:14px 16px;border-radius:22px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{50%{opacity:.25}}
+.compose{position:relative;z-index:5;margin:0 10px 12px;padding:6px;border-radius:28px;display:flex;align-items:flex-end;gap:6px}
+.compose textarea{flex:1;border:0;background:none;resize:none;outline:none;padding:9px 10px;max-height:120px;font-size:14.5px}
+.send{flex:none;width:42px;height:42px;border:0;border-radius:50%;background:var(--lime);color:var(--on);cursor:pointer;font-size:18px;font-weight:700}
+.send:disabled{opacity:.5}
+.suggest{position:relative;z-index:5;display:flex;gap:6px;margin:0 12px 8px;overflow-x:auto;scrollbar-width:none}
+.suggest button{flex:none;border:0;cursor:pointer;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600}
+.err{background:var(--pink);color:var(--on)}
+</style></head><body>
+
+<aside class="side">
+  <span class="chip dark">Claude agent · BVAL as a tool</span>
+  <h1 class="d" style="margin-top:14px">Her AI agent asks BVAL for her.</h1>
+  <p>Priya pastes the brand's DM. Claude turns it into BVAL's input, runs the live Actor on Apify, and answers with what to send back.</p>
+  <p class="muted" style="font-size:13px">Any agent that can call an API or an MCP tool can do this.</p>
+</aside>
+
+<div class="phone"><div class="screen">
+  <div class="blobs"></div>
+  <div data-status></div>
+  <div class="head glass"><div class="av">__SPARKLE__</div><div><b>Priya's deal agent</b><small><i></i>online · checks offers with BVAL</small></div></div>
+  <div class="scroll" id="scroll"><div class="chat" id="chat">
+    <span class="day glass">Today</span>
+    <div class="msg bot glass">Hi Priya. Forward me any brand offer and I'll tell you if it's fair and what to send back.</div>
+  </div></div>
+  <div class="suggest" id="suggest"><button class="glass" data-fill="dm">Paste Acme's DM</button><button class="glass" data-fill="tiktok">A TikTok offer</button></div>
+  <form class="compose glass" id="f"><textarea id="t" rows="1" placeholder="Paste a brand's message…"></textarea><button class="send" id="send" aria-label="Send">&uarr;</button></form>
+
+  <div class="overlay" id="overlay">
+    <div data-status></div>
+    <div class="bar"><button class="back glass" onclick="closeReport()">&larr; Back</button><span class="title d" style="font-size:14px"></span></div>
+    <iframe title="BVAL report"></iframe>
+  </div>
+</div></div>
+
+<script src="/static/shared.js"></script>
+<script>
+document.querySelector('.av').innerHTML = sparkle();
+const $ = id => document.getElementById(id);
+const FILL = {
+  dm: 'Acme Protein just DM\'d me: "We\'d love $800 for one Reel, plus 90 days to reuse it, 30 days running it as a Partnership Ad, and 6 months fitness exclusivity." I\'m @priya.fit on Instagram. Should I take it?',
+  tiktok: 'GlowLab emailed: "$450 for 2 TikToks, we\'d like to Spark Ad them for 60 days." I\'m @priya.fit on TikTok, beauty niche. Fair?',
+};
+let conversation = null;
+
+$('suggest').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { $('t').value = FILL[b.dataset.fill]; grow(); $('t').focus(); } });
+const grow = () => { const t = $('t'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; };
+$('t').addEventListener('input', grow);
+$('t').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('f').requestSubmit(); } });
+
+const chat = $('chat');
+function add(html) { chat.insertAdjacentHTML('beforeend', html); const el = chat.lastElementChild; $('scroll').scrollTo({ top: $('scroll').scrollHeight, behavior: 'smooth' }); return el; }
+function linkify(text) { return esc(text).replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener">${u.length > 42 ? u.slice(0, 40) + '…' : u}</a>`); }
+
+function fieldChips(inp) {
+  const c = [];
+  c.push(inp.platform); c.push('@' + inp.handle);
+  if (inp.niche) c.push(inp.niche);
+  if (inp.offer && inp.offer.amount != null) c.push(`${inp.offer.currency || 'USD'} ${inp.offer.amount}`);
+  (inp.deliverables || []).forEach(d => c.push(`${d.qty} × ${d.type.replace(/_/g, ' ')}`));
+  const r = inp.rights || {};
+  if (r.organicUsageDays) c.push(`usage ${r.organicUsageDays}d`);
+  if (r.paidUsageDays) c.push(`paid ads ${r.paidUsageDays}d`);
+  if (r.whitelistingDays) c.push(`Partnership Ads ${r.whitelistingDays}d`);
+  if (r.exclusivityDays) c.push(`exclusivity ${r.exclusivityDays}d`);
+  return c.map(x => `<span class="chip">${esc(x)}</span>`).join('');
+}
+
+function resultCard(item, runId) {
+  const tone = TONE[item.nextAction] || 'b', p = item.priceRange || {};
+  const tile = (cls, n, v) => `<div class="mini ${cls}"><span class="chip">${n}</span><b class="d">${esc(v)}</b></div>`;
+  return `<div class="tool rise">
+    <div class="card bright ${tone} verdict" style="margin:0"><div class="vb">${burst()}</div>
+      <span class="chip">nextAction: ${esc(item.nextAction)}</span>
+      <div class="d vt" style="margin-top:8px">${esc(LABEL[item.nextAction] || item.verdict)}</div>
+      <p class="vs">${esc(item.summary || '')}</p></div>
+    <div class="minis" style="margin-top:8px">${tile('p', 'Walk-away', p.walkAway)}${tile('g', 'Fair', p.fair)}${tile('b', 'Ask', p.ask)}${tile('l', 'Brand offer', item.offerDisplay || '-')}</div>
+    <div class="links" style="margin-top:8px">
+      <button class="btn" onclick="openReport('${esc(runId)}')">Full report <span class="arrow">&rarr;</span></button>
+      ${item.counterEmailUrl ? `<button class="btn light glass" onclick="openReport('${esc(runId)}/email','Counter-offer email')">Counter email <span class="arrow">&rarr;</span></button>` : ''}
+    </div></div>`;
+}
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const text = $('t').value.trim(); if (!text) return;
+  $('t').value = ''; grow(); $('send').disabled = true; $('suggest').style.display = 'none';
+  add(`<div class="msg me rise">${esc(text)}</div>`);
+  let typing = add('<div class="typing glass"><span></span><span></span><span></span></div>');
+  let toolCard = null, steps = null;
+  const dropTyping = () => { if (typing) { typing.remove(); typing = null; } };
+  try {
+    const res = await fetch('/api/agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, conversation }) });
+    if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).error || 'The agent is not reachable');
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const raw = buf.slice(0, i); buf = buf.slice(i + 2);
+        const kind = (raw.match(/^event: (.*)$/m) || [])[1], data = JSON.parse((raw.match(/^data: (.*)$/m) || [, '{}'])[1]);
+        if (kind === 'conversation') conversation = data.id;
+        else if (kind === 'text') { dropTyping(); add(`<div class="msg bot glass rise">${linkify(data.text)}</div>`); }
+        else if (kind === 'tool_call') {
+          dropTyping();
+          toolCard = add(`<div class="card bright y tool rise"><div class="tb spin">${burst(12, 7)}</div>
+            <div class="d">Asking BVAL…</div><div class="fields">${fieldChips(data.input)}</div><ul class="steps"></ul></div>`);
+          steps = toolCard.querySelector('.steps');
+        } else if (kind === 'progress' && steps) {
+          steps.querySelectorAll('li').forEach(x => x.classList.remove('now'));
+          steps.insertAdjacentHTML('beforeend', `<li class="now">${esc(data.message)}</li>`);
+        } else if (kind === 'tool_done') {
+          if (toolCard) { toolCard.querySelector('.tb').classList.remove('spin'); toolCard.querySelector('.d').textContent = 'BVAL answered'; }
+          add(resultCard(data.item, data.runId));
+          typing = add('<div class="typing glass"><span></span><span></span><span></span></div>');
+        } else if (kind === 'error') { dropTyping(); add(`<div class="msg err rise">${esc(data.message)}</div>`); }
+      }
+    }
+  } catch (err) {
+    add(`<div class="msg err rise">${esc(err.message)}</div>`);
+  } finally {
+    dropTyping(); $('send').disabled = false;
+  }
+});
+</script>
+</body></html>

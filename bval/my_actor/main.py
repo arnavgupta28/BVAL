@@ -7,14 +7,22 @@ range, a verdict on the brand's offer, red flags, and a ready-to-send counter-of
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+import os
+import re
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from apify import Actor, Event
 
 from .counter_email import build_payload, deliverable_label, format_money, write_email
+from .evidence import build_evidence
 from .feeders import FeederError, clean_handle, scrape
+from .inputs import normalize_input
 from .pricing import DISCLAIMER, Metrics, PricingError, Terms, evaluate_deal, load_rates, resolve_market
+from .rate_card import build_rate_card
+from .report import agent_fields, counter_email_html, email_digest, html_report, markdown_report
+
+EMAIL_RE = re.compile(r'^[^@\s,;]+@[^@\s,;]+\.[^@\s,;]+$')
 
 PLATFORM_DEFAULT_DELIVERABLE = {'instagram': 'instagram_reel', 'tiktok': 'tiktok_video', 'youtube': 'youtube_integration'}
 
@@ -49,9 +57,10 @@ def build_terms(inp: dict, market: dict) -> Terms:
         deposit_pct=_int(inp.get('depositPct'), 50),
         ai_training_clause=bool(inp.get('aiTrainingClause')),
         ad_spend_usd=inp.get('adSpendUsd') or None,
-        offer_amount=inp.get('offerAmount') if inp.get('offerAmount') not in (None, '') else None,
+        # "No offer yet" wins over any amount left in the form, so the run returns a quote and a rate card.
+        offer_amount=None if inp.get('noOffer') else (inp.get('offerAmount') if inp.get('offerAmount') not in (None, '') else None),
         offer_currency=(inp.get('offerCurrency') or 'USD').upper(),
-        gifted_only=bool(inp.get('giftedOnly')),
+        gifted_only=bool(inp.get('giftedOnly')) and not inp.get('noOffer'),
         market=market['code'],
     )
 
@@ -84,44 +93,34 @@ def proof_point(platform: str, m: Metrics) -> str | None:
     return s + '.'
 
 
-def markdown_report(item: dict) -> str:
-    p = item['priceRange']
-    lines = [
-        f"# BVAL deal check: @{item['handle']} ({item['platform']})",
-        '',
-        f"**Verdict: {item['verdict'].replace('_', ' ')}.** {item['verdictText']}",
-        '',
-        '| Walk-away | Floor | Fair | Ask | Brand offer |',
-        '|---|---|---|---|---|',
-        f"| {p['walkAway']} | {p['floor']} | **{p['fair']}** | {p['ask']} | {item.get('offerDisplay') or '-'} |",
-        '',
-        '## Line items',
-        '',
-        '| Item | Amount | Source |',
-        '|---|---|---|',
-    ]
-    for li in item['lineItems']:
-        src = 'assumption' if li['isAssumption'] else ', '.join(li['sources'])
-        lines.append(f"| {li['item']} | {li['amount']} | {src} |")
-    if item['redFlags']:
-        lines += ['', '## Red flags', ''] + [f"- **{f['code']}**: {f['message']}" for f in item['redFlags']]
-    if item.get('counterOptions', {}).get('reducedScope'):
-        rs = item['counterOptions']['reducedScope']
-        lines += ['', f"**Reduced-scope option:** {rs['price']} (drops or reduces: {', '.join(rs['dropped'])})"]
-    m = item['metrics']
-    lines += [
-        '',
-        '## Data used',
-        '',
-        f"Audience {m['audience'] or 0:,} ({m['tier']} tier), median views {m['medianViews'] or 0:,.0f}, "
-        f"engagement {(m['engagementRate'] or 0) * 100:.1f}%, "
-        + (f"{m['postsUsed']} posts analysed" if m['postsUsed'] else 'metrics supplied manually')
-        + f". Confidence: **{item['confidence']}**" + (f" ({'; '.join(item['confidenceReasons'])})" if item['confidenceReasons'] else ''),
-    ]
-    if item.get('counterEmail'):
-        lines += ['', '## Counter-offer email', '', f"**Subject:** {item['counterEmail']['subject']}", '', item['counterEmail']['body']]
-    lines += ['', f"_{item['disclaimer']} Rates version {item['ratesVersion']}._"]
-    return '\n'.join(lines)
+async def send_mail(to: str, subject: str, html: str, text: str, what: str = 'the report') -> bool:
+    """Email the user through Apify's own send-mail Actor. Never fails the run.
+
+    Off the platform the send is mocked (logged, not delivered) so local test runs don't email anyone,
+    unless BVAL_SEND_EMAIL_LOCALLY=1 is set.
+    """
+    try:
+        run = await Actor.call(
+            'apify/send-mail',
+            {'to': to, 'subject': subject, 'html': html, 'text': text, 'isMock': not Actor.is_at_home() and not os.getenv('BVAL_SEND_EMAIL_LOCALLY')},
+            memory_mbytes=256,
+            timeout=timedelta(seconds=60),
+            logger=None,
+        )
+    except Exception as e:  # noqa: BLE001  a failed email must not lose the evaluation the user paid for
+        Actor.log.warning(f'Could not email {what}: {e}')
+        return False
+    ok = run is not None and getattr(run.status, 'value', run.status) == 'SUCCEEDED'
+    if not ok:
+        reason = f"send-mail run {getattr(run, 'status', 'missing')}"
+        try:
+            log = await Actor.apify_client.run(run.id).log().get() if run is not None else ''
+            if log and 'own email address' in log:
+                reason = 'Apify only sends to the email address of the account running the Actor; use that address'
+        except Exception:  # noqa: BLE001, S110  the reason is a nicety; the warning still goes out
+            pass
+        Actor.log.warning(f'Could not email {what} ({reason}).')
+    return ok
 
 
 async def main() -> None:
@@ -132,7 +131,7 @@ async def main() -> None:
 
         Actor.on(Event.ABORTING, on_aborting)
 
-        inp = await Actor.get_input() or {}
+        inp = normalize_input(await Actor.get_input())  # grouped form fields -> flat names; old flat inputs still work
         rates = load_rates()
         platform = inp.get('platform', 'instagram')
         raw_handle = inp.get('handle', '')
@@ -210,6 +209,7 @@ async def main() -> None:
             'offerAmount': terms.offer_amount,
             'offerCurrency': terms.offer_currency,
             'offerDisplay': money(result['offerUsd']) if result.get('offerUsd') is not None else None,
+            'offerValue': exact(result['offerUsd']) if result.get('offerUsd') is not None else None,
             'gapPct': round(result['gapPct'], 1) if result.get('gapPct') is not None else None,
             'fairPrice': exact(pts['fair']),
             'askPrice': exact(pts['ask']),
@@ -222,6 +222,9 @@ async def main() -> None:
                 'reducedScope': {'price': money(reduced['priceUsd']), 'dropped': reduced['droppedOrReduced']} if reduced else None,
             },
             'redFlags': result['redFlags'],
+            # No offer: the price range above is the creator's own package; add our recommendations around it.
+            'rateCard': build_rate_card(metrics, terms, rates, money, exact) if result['verdict'] == 'NO_OFFER' else None,
+            'evidence': build_evidence(scope['units'][0], metrics, info, result['tier'], rates, market, terms.niche, money),
             'warnings': result['warnings'] + market.get('warnings', []),
             'metrics': {
                 'audience': metrics.audience,
@@ -263,8 +266,29 @@ async def main() -> None:
             item['emailGeneratedBy'] = generated_by
             await Actor.charge(event_name='counter-email-drafted')
 
-        report = markdown_report(item)
-        await Actor.set_value('QUOTE.md', report, content_type='text/markdown')
+        # Agents read the first fields; people open the HTML report.
+        store = await Actor.open_key_value_store()
+        item = {**agent_fields(item), 'reportUrl': await store.get_public_url('QUOTE.html'), **item}
+        designed = counter_email_html(item)
+        if designed:
+            # The counter-offer email laid out in the report's style, ready to forward to the brand.
+            item['counterEmailUrl'] = await store.get_public_url('COUNTER_EMAIL.html')
+            await Actor.set_value('COUNTER_EMAIL.html', designed[1], content_type='text/html')
+        await Actor.set_value('QUOTE.html', html_report(item), content_type='text/html')
+        await Actor.set_value('QUOTE.md', markdown_report(item), content_type='text/markdown')
+
+        # The address is used only to send; it is never written to the dataset or the logs.
+        send_to = (inp.get('sendReportTo') or '').strip()
+        if send_to:
+            if EMAIL_RE.match(send_to):
+                item['reportEmailed'] = await send_mail(send_to, *email_digest(item))
+                if designed:
+                    subject, html, text = designed
+                    await send_mail(send_to, f'Ready to forward: {subject}', html, text, what='the counter-offer email')
+                Actor.log.info('Report emailed.' if item['reportEmailed'] else 'Report not emailed; it is still in the Output tab.')
+            else:
+                item['reportEmailed'] = False
+                Actor.log.warning('"Email me the result" is not a single valid email address, so no email was sent.')
         await Actor.push_data(item)
         Actor.log.info(f"@{handle}: fair {item['priceRange']['fair']}, verdict {item['verdict']}.")
 

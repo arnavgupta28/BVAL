@@ -1,6 +1,12 @@
 # BVAL: brand-deal rate calculator for creators (Apify Actor)
 
+![BVAL: know your worth before you reply](assets/readme/banner.png)
+
 Paste a brand's offer, get the verdict: fair rate, every term (usage, Partnership/Spark Ads, exclusivity, ...) priced as a dated line item, a walk-away / floor / fair / ask range, red flags, and a counter-offer email. Instagram, TikTok and YouTube, any country.
+
+![How it works](assets/readme/how.png)
+
+![What you get: the deal report, the result email, and the price details on a phone](assets/readme/output.png)
 
 Built for the Apify "AI Tools that Earn" hackathon, Bengaluru, 22 Nov 2026.
 
@@ -19,3 +25,7 @@ apify run --input '{"platform":"instagram","handle":"examplecreator","offerAmoun
 ```
 
 Remove `manualMetrics` to scrape the handle live (uses Apify credit for the Instagram/TikTok/YouTube scrapers).
+
+## README graphics
+
+The images in [assets/readme/](assets/readme/) are drawn from the Actor's own report and email code, so they match what users see. After changing the report style, rebuild them with `bval/.venv/bin/python assets/readme/build_readme_images.py` (needs Google Chrome).

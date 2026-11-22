@@ -1,8 +1,12 @@
+![BVAL: know your worth before you reply. A phone showing the BVAL deal report with the verdict and price tiles.](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/banner.png)
+
 **Paste a brand's offer. Get the verdict, your walk-away / floor / fair / ask price, every term priced as its own line, and a counter-offer email ready to send.** For creators and talent managers on **Instagram, TikTok and YouTube**, in **any country**.
 
 > *"Acme Protein offered Priya $800 for one Reel, 90 days of usage, 30 days of ads through her handle and 6 months of category exclusivity. BVAL says: fair value $2,790, walk-away $910. The exclusivity alone is worth $1,360. Counter at $3,490, or offer a lighter version at $1,070."*
 
 ## What does BVAL do?
+
+![How it works: 1 scrape real views, 2 price every term, 3 give the verdict, 4 draft the counter-offer email](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/how.png)
 
 BVAL is a **brand-deal valuation API** for the creator economy. Give it a creator's **handle** and the brand's **deal terms**. It:
 
@@ -14,6 +18,8 @@ BVAL is a **brand-deal valuation API** for the creator economy. Give it a creato
 The price is never made up by an AI. It comes from a transparent formula and a versioned `rates.json` where every number cites a source or is labelled as an assumption. The LLM only writes the email.
 
 ## Who is it for?
+
+![Who it is for: creators, talent managers and brands](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/who.png)
 
 - 🎥 **Creators (10K–1M followers)** who get offers with usage, whitelisting and exclusivity clauses and don't know what those are worth.
 - 🧑‍💼 **Talent managers and influencer agencies** triaging dozens of inbound offers a week across a roster, via API, schedules or AI agents (MCP).
@@ -29,6 +35,8 @@ The price is never made up by an AI. It comes from a transparent formula and a v
 - **Apify platform built in:** run it from the Console, the API, on a schedule, from Make / Zapier / n8n, or from any AI agent via the Apify MCP server.
 
 ## What data does BVAL return?
+
+![The four outcomes: accept, counter, decline or cut scope, and your quote, each with its nextAction value](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/verdicts.png)
 
 | Field | Example | Meaning |
 |---|---|---|
@@ -55,7 +63,11 @@ A Markdown **quote report** (`QUOTE.md`) is also saved to the run's key-value st
 
 Already know the creator's numbers? Fill **Manual metrics** to skip scraping and re-price new terms instantly.
 
+**No offer yet?** Tick **No offer yet: suggest what I should charge**. BVAL prices whatever package you describe (your own mix of posts, usage, ads and exclusivity), and adds a rate card from your real numbers: three ready-made packages to pitch (Starter, Standard, Premium), a price per post for every format, and what each extra adds. The email becomes a quote instead of a counter.
+
 ## How much does BVAL cost?
+
+![Pay per event: full deal check $0.99; deal evaluated $0.79, counter email $0.20, re-price without scraping $0.25](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/pricing.png)
 
 BVAL uses **pay-per-event** pricing, so you pay only for results:
 
@@ -79,33 +91,51 @@ A full deal check with email costs **$0.99**. A manager checking 40 deals a mont
 
 Sources include LeadDyno/Aspire, Later, Influencer Marketing Hub, HypeAuditor, Modash, impact.com, Lumanu, Toptal, Net Influencer, upGrowth, Kolect and others. The full cited table ships with the Actor.
 
-## Input example
+## Input
+
+Only **two fields are required**: `platform` and `handle`. Everything else is optional and grouped the way you think about a deal:
+
+| Group | Fields | Why it matters |
+|---|---|---|
+| **1. Creator** (required) | `platform`, `handle` | Whose real views to price |
+| **2. Audience** | `niche`, `market` (ISO country code) | Brands pay by niche and audience country |
+| **3. The brand's offer** | `offer` {`brandName`, `amount`, `currency`, `productOnly`}, `deliverables` [{`type`, `qty`}] | Turns a quote into a verdict |
+| **4. Rights and exclusivity** | `rights` {`organicUsageDays`, `paidUsageDays`, `whitelistingDays`, `adSpendUsd`, `perpetualRights`, `exclusivityDays`, `exclusivityScope`} | The clauses that quietly add 50-200% |
+| **5. Extras and contract** | `extras` {rush, revisions, raw footage, cross-posting, link placements}, `contract` {payment days, deposit, AI clause} | Fine-tuning and red-flag checks |
+| **6. Results** | `outputCurrency`, `generateEmail`, `creatorName`, `sendReportTo` | How you get the answer back |
+| **Advanced** | `manualMetrics` {`followers`, `medianViews`, `engagementRate`}, `llmModel` | Skip scraping; re-price instantly |
 
 ```json
 {
   "platform": "instagram",
   "handle": "examplecreator",
   "niche": "fitness",
-  "deliverables": [{ "type": "instagram_reel", "qty": 1 }],
-  "brandName": "Acme Protein",
-  "offerAmount": 800,
-  "offerCurrency": "USD",
-  "organicUsageDays": 90,
-  "whitelistingDays": 30,
-  "exclusivityDays": 180,
   "market": "GLOBAL",
-  "generateEmail": true
+  "offer": { "brandName": "Acme Protein", "amount": 800, "currency": "USD" },
+  "deliverables": [{ "type": "instagram_reel", "qty": 1 }],
+  "rights": { "organicUsageDays": 90, "whitelistingDays": 30, "exclusivityDays": 180 }
 }
 ```
 
-See the **Input** tab for every option. Deliverable types: `instagram_reel`, `instagram_story_frame`, `instagram_static_post`, `instagram_carousel`, `tiktok_video`, `youtube_integration`, `youtube_mention_15_30s`, `youtube_dedicated`, `youtube_short`.
+The smallest valid input is `{"platform": "tiktok", "handle": "examplecreator"}`, which returns a quote. Earlier flat field names (`offerAmount`, `organicUsageDays`, ...) are still accepted, so saved tasks and API callers keep working. Deliverable types: `instagram_reel`, `instagram_story_frame`, `instagram_static_post`, `instagram_carousel`, `tiktok_video`, `youtube_integration`, `youtube_mention_15_30s`, `youtube_dedicated`, `youtube_short`.
 
 ## Output example
 
-You can download the dataset as JSON, CSV, Excel or HTML, or read it through the API.
+![Three phones: the deal report in the Output tab, the result email in your inbox, and the price bar, options and red flags](https://raw.githubusercontent.com/arnavgupta28/BVAL/main/assets/readme/output.png)
+
+Every run produces two outputs from the same numbers:
+
+- **For you: a deal report page (`QUOTE.html`).** It shows the verdict, where the brand's offer lands between your walk-away price and your ask, the two options to offer, the red flags, every line item, and the counter-offer email with a **Copy** button. A **Your numbers** section lists every stat BVAL pulled (audience, median views, reach, engagement, niche, market), the benchmark it was compared to, and exactly what it did to the price, so you can defend your rate. The counter-offer email sits right under the verdict. The page opens first in the **Output** tab, works on a phone, and you can send the link to your manager. A Markdown copy (`QUOTE.md`) is saved too.
+- **In your inbox (optional).** Put your Apify account's email address in **Email me the result** and BVAL emails you the verdict, the prices, the counter-offer email ready to copy, and a link to the full report. A second email carries the counter-offer as a designed email (quote card, clean layout, no BVAL branding) that you can forward straight to the brand. It's also saved as `COUNTER_EMAIL.html`. Apify only delivers to your own account's address, and the address isn't saved in the results.
+- **For your agent or code: one JSON row.** The first three fields are there so an agent can act without reading the rest: `nextAction` (`accept`, `counter`, `decline` or `quote`), a one-sentence `summary` with the prices, and `reportUrl`, a link to the report page.
+
+You can also download the dataset as JSON, CSV, Excel or HTML, or read it through the API.
 
 ```json
 {
+  "nextAction": "decline",
+  "summary": "Decline or cut scope: the offer of $800 is below the walk-away point ($910); fair value is $2,790. Or offer reduced scope at $1,070 by dropping exclusivity, whitelisting, organic usage. Red flags: UNPRICED_WHITELISTING, LONG_EXCLUSIVITY.",
+  "reportUrl": "https://api.apify.com/v2/key-value-stores/<storeId>/records/QUOTE.html",
   "handle": "examplecreator",
   "platform": "instagram",
   "verdict": "DECLINE_OR_REDUCE_SCOPE",
@@ -130,7 +160,7 @@ You can download the dataset as JSON, CSV, Excel or HTML, or read it through the
 
 ## Use BVAL from an AI agent or the API
 
-Every Apify Actor is available to AI agents through the [Apify MCP server](https://mcp.apify.com). Ask your agent *"Check this brand offer for @creator with BVAL"* and it can call BVAL directly. Agencies can also call it from the **API** tab, run it on a **schedule**, or connect it to **Make, Zapier or n8n** to check every inbound offer automatically.
+Every Apify Actor is available to AI agents through the [Apify MCP server](https://mcp.apify.com). Ask your agent *"Check this brand offer for @creator with BVAL"* and it can call BVAL directly. The agent branches on `nextAction`, relays `summary` to you, and can hand you `reportUrl` to open the full report. Agencies can also call it from the **API** tab, run it on a **schedule**, or connect it to **Make, Zapier or n8n** to check every inbound offer automatically.
 
 ## FAQ
 
@@ -161,5 +191,5 @@ git clone https://github.com/arnavgupta28/BVAL.git && cd BVAL/bval
 npm install -g apify-cli && apify login
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 apify run --input '{"platform":"instagram","handle":"examplecreator","offerAmount":800,"manualMetrics":{"followers":85000,"medianViews":42000,"engagementRate":0.035}}'
-.venv/bin/python -m unittest discover -s tests   # 40 tests, including the research worked examples
+.venv/bin/python -m unittest discover -s tests   # 50 tests, including the research worked examples
 ```

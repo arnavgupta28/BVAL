@@ -5,6 +5,36 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+            "nextAction": {
+                "type": "string",
+                "description": "What to do next, as a fixed code an agent can branch on",
+                "nullable": true,
+                "example": "counter",
+                "enum": [
+                    "accept",
+                    "counter",
+                    "decline",
+                    "quote"
+                ]
+            },
+            "summary": {
+                "type": "string",
+                "description": "One-sentence decision with prices, ready to relay to the creator",
+                "nullable": true,
+                "example": "Counter at $2,890: the offer of $800 is 71% below fair value ($2,760). Or offer reduced scope at $1,180 by dropping paid usage, exclusivity. Red flags: LONG_EXCLUSIVITY."
+            },
+            "reportUrl": {
+                "type": "string",
+                "description": "Link to the visual HTML report (QUOTE.html) to share with the creator",
+                "nullable": true,
+                "example": "https://api.apify.com/v2/key-value-stores/abc123/records/QUOTE.html"
+            },
+            "counterEmailUrl": {
+                "type": "string",
+                "description": "Link to the counter-offer email laid out as a designed HTML email, ready to forward to the brand",
+                "nullable": true,
+                "example": "https://api.apify.com/v2/key-value-stores/abc123/records/COUNTER_EMAIL.html"
+            },
             "handle": {
                 "type": "string",
                 "description": "Creator handle analysed",
@@ -89,6 +119,12 @@
                 "description": "Brand offer in the display currency",
                 "nullable": true,
                 "example": "$800"
+            },
+            "offerValue": {
+                "type": "number",
+                "description": "Brand offer as a number in the output currency",
+                "nullable": true,
+                "example": 800
             },
             "gapPct": {
                 "type": "number",
@@ -254,6 +290,70 @@
                     "additionalProperties": true
                 }
             },
+            "rateCard": {
+                "type": "object",
+                "description": "Only when there is no offer yet: recommended packages (Starter, Standard, Premium), price per post, and what each extra adds on one main post",
+                "nullable": true,
+                "example": {
+                    "packages": [
+                        {
+                            "name": "Starter",
+                            "ask": "$1,240",
+                            "fair": "$990",
+                            "includes": [
+                                "1 x Instagram Reel"
+                            ]
+                        }
+                    ],
+                    "perPost": [
+                        {
+                            "type": "instagram_reel",
+                            "label": "Instagram Reel",
+                            "ask": "$1,240",
+                            "fair": "$990"
+                        }
+                    ],
+                    "addOns": [
+                        {
+                            "key": "whitelisting_30",
+                            "label": "Ads through your handle, 30 days",
+                            "adds": "+$280"
+                        }
+                    ]
+                },
+                "properties": {},
+                "additionalProperties": true
+            },
+            "evidence": {
+                "type": "array",
+                "description": "The numbers BVAL pulled, each with its benchmark and what it did to the price (audience, median views, reach, engagement, niche, market, sponsored posts, result)",
+                "nullable": true,
+                "example": [
+                    {
+                        "stat": "Median views",
+                        "value": "42,000 (last 24 posts)",
+                        "benchmark": "$20 per 1,000 views is the 2026 benchmark",
+                        "claim": "42,000 / 1,000 x $20 = $840 starting price."
+                    }
+                ],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "stat": {
+                            "type": "string"
+                        },
+                        "value": {
+                            "type": "string"
+                        },
+                        "benchmark": {
+                            "type": "string"
+                        },
+                        "claim": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "warnings": {
                 "type": "array",
                 "description": "Terms that do not apply on this platform or market",
@@ -396,7 +496,13 @@
                 "type": "string",
                 "description": "LLM model that wrote the email, or \"template\"",
                 "nullable": true,
-                "example": "anthropic/claude-sonnet-4.5"
+                "example": "anthropic/claude-sonnet-5.5"
+            },
+            "reportEmailed": {
+                "type": "boolean",
+                "description": "Whether the result was emailed to the address in \"Email me the result\". Only present when an address was given; the address itself is never stored.",
+                "nullable": true,
+                "example": true
             },
             "disclaimer": {
                 "type": "string",
@@ -434,6 +540,7 @@
                 "fields": [
                     "handle",
                     "platform",
+                    "nextAction",
                     "verdict",
                     "offerDisplay",
                     "priceRange.walkAway",
@@ -442,7 +549,9 @@
                     "priceRange.ask",
                     "gapPct",
                     "confidence",
-                    "market"
+                    "market",
+                    "summary",
+                    "reportUrl"
                 ],
                 "flatten": [
                     "priceRange"
@@ -457,6 +566,10 @@
                     },
                     "platform": {
                         "label": "Platform",
+                        "format": "text"
+                    },
+                    "nextAction": {
+                        "label": "Next action",
                         "format": "text"
                     },
                     "verdict": {
@@ -493,6 +606,55 @@
                     },
                     "market": {
                         "label": "Market",
+                        "format": "text"
+                    },
+                    "summary": {
+                        "label": "Summary",
+                        "format": "text"
+                    },
+                    "reportUrl": {
+                        "label": "Report",
+                        "format": "link"
+                    }
+                }
+            }
+        },
+        "email": {
+            "title": "Counter-offer email",
+            "description": "The ready-to-send reply to the brand",
+            "transformation": {
+                "fields": [
+                    "handle",
+                    "nextAction",
+                    "counterEmail.subject",
+                    "counterEmail.body",
+                    "emailGeneratedBy"
+                ],
+                "flatten": [
+                    "counterEmail"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "handle": {
+                        "label": "Creator",
+                        "format": "text"
+                    },
+                    "nextAction": {
+                        "label": "Next action",
+                        "format": "text"
+                    },
+                    "counterEmail.subject": {
+                        "label": "Subject",
+                        "format": "text"
+                    },
+                    "counterEmail.body": {
+                        "label": "Email",
+                        "format": "text"
+                    },
+                    "emailGeneratedBy": {
+                        "label": "Written by",
                         "format": "text"
                     }
                 }

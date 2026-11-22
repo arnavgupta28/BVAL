@@ -4,6 +4,24 @@
     "title": "BVAL deal check",
     "description": "Verdict, itemised price range and counter-offer email for one creator deal",
     "properties": {
+        "report": {
+            "type": "string",
+            "title": "Deal report",
+            "description": "Visual report to read or share with the creator",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/QUOTE.html"
+        },
+        "email": {
+            "type": "string",
+            "title": "Counter-offer email",
+            "description": "The ready-to-send reply to the brand",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=email"
+        },
+        "emailDesigned": {
+            "type": "string",
+            "title": "Counter-offer email (designed)",
+            "description": "Ready to forward to the brand",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/COUNTER_EMAIL.html"
+        },
         "verdict": {
             "type": "string",
             "title": "Deal verdict",
@@ -19,7 +37,7 @@
         "results": {
             "type": "string",
             "title": "Full results (JSON)",
-            "description": "All fields",
+            "description": "All fields. Agents: read nextAction and summary first",
             "template": "{{links.apiDefaultDatasetUrl}}/items"
         }
     }

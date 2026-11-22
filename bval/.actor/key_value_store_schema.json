@@ -2,14 +2,30 @@
     "$schema": "https://apify.com/schemas/v1/key-value-store.ide.json",
     "actorKeyValueStoreSchemaVersion": 1,
     "title": "BVAL quote",
-    "description": "Human-readable deal report",
+    "description": "Human-readable deal reports",
     "collections": {
+        "report": {
+            "title": "Deal report (HTML)",
+            "description": "Visual deal report: verdict, where the offer lands in the price range, options, line items, red flags and the counter-offer email with a copy button",
+            "key": "QUOTE.html",
+            "contentTypes": [
+                "text/html"
+            ]
+        },
         "quote": {
             "title": "Quote report",
             "description": "Markdown deal report: verdict, price range, line items, red flags and the counter-offer email",
             "key": "QUOTE.md",
             "contentTypes": [
                 "text/markdown"
+            ]
+        },
+        "counterEmail": {
+            "title": "Counter-offer email (designed)",
+            "description": "The counter-offer email laid out as an HTML email in the report style, ready to forward to the brand",
+            "key": "COUNTER_EMAIL.html",
+            "contentTypes": [
+                "text/html"
             ]
         }
     }

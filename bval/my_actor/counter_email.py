@@ -17,7 +17,9 @@ import urllib.request
 from typing import Any
 
 OPENROUTER_URL = 'https://openrouter.apify.actor/api/v1/chat/completions'
-DEFAULT_MODELS = ['anthropic/claude-sonnet-4.5', 'openai/gpt-4o-mini']
+# Sonnet 5.5 first; 4.5 (verified on the Apify proxy) and gpt-4o-mini are fallbacks. 5.5's first try (run h2w11aGmUsRUFpXK4)
+# was rejected by a strict JSON parse, fixed in _parse below.
+DEFAULT_MODELS = ['anthropic/claude-sonnet-5.5', 'anthropic/claude-sonnet-4.5', 'openai/gpt-4o-mini']
 
 CURRENCY_SYMBOL = {'USD': '$', 'INR': '₹', 'GBP': '£', 'EUR': '€', 'BRL': 'R$', 'CAD': 'C$', 'AUD': 'A$', 'MXN': 'MX$', 'IDR': 'Rp', 'JPY': '¥', 'PHP': '₱'}
 
@@ -112,15 +114,46 @@ def format_money(usd: float, currency: str, fx: float, step: int) -> str:
     return f'{sym}{value:,.0f}'
 
 
+def _digits(s: str) -> int:
+    return int(re.sub(r'\D', '', s) or 0)
+
+
+def quote_lines(scope: dict, pts: dict, money: Any) -> list[dict]:
+    """Itemised quote for the email, priced at the ASK so the lines add up exactly to the total quoted.
+
+    The engine's line items sum to fair value; the email opens at ask (fair x ask_mult). Each line is scaled by
+    ask/fair, rounded like the display currency, and the rounding remainder goes on the largest line.
+    """
+    scale = pts['ask'] / pts['fair'] if pts.get('fair') else 1.0
+    raw: list[tuple[str, float]] = [(f"{u['qty']} x {deliverable_label(u['type'])}", u['subtotalUsd']) for u in scope['units']]
+    if scope['packageDiscountPct']:
+        raw.append((f"Package discount ({scope['packageDiscountPct']:.0f}%)", -(scope['grossUsd'] - scope['contentBaseUsd'])))
+    raw += [(a['item'], a['amountUsd']) for a in scope['addons']]
+
+    disp = [(label, (1 if v >= 0 else -1) * _digits(money(abs(v) * scale)), v) for label, v in raw]
+    total = _digits(money(pts['ask']))
+    diff = total - sum(d for _, d, _ in disp)
+    if diff and disp:
+        i = max(range(len(disp)), key=lambda k: disp[k][1])
+        disp[i] = (disp[i][0], disp[i][1] + diff, disp[i][2])
+    per_unit = total / pts['ask'] if pts.get('ask') else 1.0  # display units per USD, to re-format exact values
+
+    out = []
+    for label, d, v in disp:
+        if v == 0:
+            out.append({'item': label, 'price': 'included'})
+        else:
+            s = money(abs(d) / per_unit)
+            out.append({'item': label, 'price': ('-' if d < 0 else '') + s})
+    return out
+
+
 def build_payload(result: dict, ctx: dict) -> dict:
     """Structured, number-complete input for the email writer. `ctx` carries display + identity info."""
     money = ctx['money']
     pts = result['pricePointsUsd']
     scope = result['scope']
-    lines = [{'item': f"{u['qty']} x {deliverable_label(u['type'])}", 'price': money(u['subtotalUsd'])} for u in scope['units']]
-    if scope['packageDiscountPct']:
-        lines.append({'item': f"Package discount ({scope['packageDiscountPct']:.0f}%)", 'price': '-' + money(scope['grossUsd'] - scope['contentBaseUsd'])})
-    lines += [{'item': a['item'], 'price': money(a['amountUsd']) if a['amountUsd'] else 'included'} for a in scope['addons']]
+    lines = quote_lines(scope, pts, money)
 
     reduced = result.get('reducedScope')
     option_b = None
@@ -198,16 +231,28 @@ def _post(url: str, token: str, payload: dict, timeout: int = 45) -> dict:
         return json.loads(resp.read().decode())
 
 
-def _parse(content: str) -> dict | None:
-    m = re.search(r'\{.*\}', content or '', re.S)
+def _content_text(content: Any) -> str:
+    """OpenRouter returns a string, but some models send a list of content parts."""
+    if isinstance(content, list):
+        return ''.join(p.get('text', '') for p in content if isinstance(p, dict))
+    return content or ''
+
+
+def _parse(content: Any) -> dict | None:
+    m = re.search(r'\{.*\}', _content_text(content), re.S)
     if not m:
         return None
     try:
-        out = json.loads(m.group(0))
+        # strict=False accepts raw line breaks inside the body string, which newer models write.
+        out = json.loads(m.group(0), strict=False)
     except json.JSONDecodeError:
         return None
+    if not isinstance(out, dict):
+        return None
     if isinstance(out.get('subject'), str) and isinstance(out.get('body'), str) and len(out['body']) > 80:
-        return {'subject': out['subject'].strip(), 'body': out['body'].strip()}
+        # Emails are plain text: drop Markdown bold/italic markers some models add (**1 x Reel, $1,070**).
+        clean = lambda t: re.sub(r'\*\*(.+?)\*\*|__(.+?)__', lambda m: m.group(1) or m.group(2), t).strip()  # noqa: E731
+        return {'subject': clean(out['subject']), 'body': clean(out['body'])}
     return None
 
 
@@ -227,18 +272,21 @@ async def write_email(payload: dict, model: str | None = None, log: Any = None) 
                 {
                     'model': slug,
                     'temperature': 0.4,
-                    'max_tokens': 900,
+                    'max_tokens': 2000,
                     'messages': [
                         {'role': 'system', 'content': SYSTEM_PROMPT},
                         {'role': 'user', 'content': json.dumps(payload, ensure_ascii=False)},
                     ],
                 },
             )
-            email = _parse(data['choices'][0]['message']['content'])
+            choice = data['choices'][0]
+            email = _parse(choice['message'].get('content'))
             if email:
                 return email, slug
             if log:
-                log.warning(f'LLM {slug} returned an unusable email; trying the next option.')
+                snippet = _content_text(choice['message'].get('content'))[:160].replace('\n', ' ')
+                log.warning(f"LLM {slug} returned an unusable email (finish_reason={choice.get('finish_reason')}, "
+                            f"starts: {snippet!r}); trying the next option.")
         except urllib.error.HTTPError as e:
             if log:
                 detail = e.read().decode(errors='replace')[:300] if hasattr(e, 'read') else ''

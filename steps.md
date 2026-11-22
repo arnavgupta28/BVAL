@@ -20,11 +20,11 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 ## Step 1: Account and tooling
 - ✅ Apify CLI 1.13.0 installed; logged in as `agupta1`.
 - ✅ Apify agent skills installed (`apify-actor-development`, `apify-ultimate-scraper`).
-- ✅ Coupon **`APIFYBLR`** applied ($50 credit).
-- 🟡 Billing/payment details filled in and **Store Publishing Terms** accepted (needed for pricing + publishing). *Please confirm.*
+- ✅ Hackathon coupon applied ($50 credit).
+- ✅ Billing details and Store Publishing Terms done (monetization and publishing went through, 22 Nov 2026).
 - ✅ Public GitHub repo: [arnavgupta28/BVAL](https://github.com/arnavgupta28/BVAL) (initial commit pushed; `assets/`, `storage/`, `.venv`, `.env` ignored).
 - ✅ Today's work committed and pushed (`077e7d0`).
-- ⏳ Run instructions in the repo README (with Step 10).
+- ✅ Run instructions in the repo README.
 
 ## Step 2: Research (pricing must hold up against market data)
 - ✅ Deep research on rates, add-ons, negotiation, competitors, feeders → [bval_research.md](bval_research.md) with cited `rates.json` (67 source entries).
@@ -45,39 +45,81 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 - ✅ Feeders [feeders.py](bval/my_actor/feeders.py): parallel IG calls, cost/time caps per call, age windows with fallback, 0/-1 treated as missing.
 - ✅ Counter-offer email [counter_email.py](bval/my_actor/counter_email.py): LLM via Apify OpenRouter proxy, brand-facing pushback lines, deterministic template fallback.
 - ✅ LLM email works on the platform (`anthropic/claude-sonnet-4.5` via Apify OpenRouter). Only local runs get 403 and fall back to the template.
-- ✅ Entry point [main.py](bval/my_actor/main.py): input → scrape or manual metrics → price → email → PPE charges → dataset row + `QUOTE.md`.
-- ✅ Tests: **40 passing** (3 research worked examples, real fixtures, markets, edge cases): `cd bval && .venv/bin/python -m unittest discover -s tests`.
+- ✅ Two outputs from one run (22 Nov 2026): visual deal report `QUOTE.html` for people (first in the Output tab, works on a phone, light and dark), and agent fields `nextAction`, `summary` and `reportUrl` at the top of the JSON row. Code in [report.py](bval/my_actor/report.py); schemas and README updated; local run checked.
+- ✅ Counter-offer email moved up in `QUOTE.html` (under the verdict) and given its own "Counter-offer email" view in the Output tab.
+- ✅ New input `sendReportTo`: emails the verdict, prices, counter-offer email and report link through `apify/send-mail`. Apify only delivers to the running account's own address; other addresses log a clear warning and the run still succeeds. Address is never stored. Real send tested locally (22 Nov 2026) with `BVAL_SEND_EMAIL_LOCALLY=1`; 50 tests passing.
+- ✅ `QUOTE.html`, the email view and the agent fields deployed (build **0.1.7**). Scraped cloud run `h2w11aGmUsRUFpXK4` succeeded in 65s; `reportUrl` opens logged out (HTTP 200, signed link).
+- ✅ `sendReportTo` delivery verified on the platform in build 0.1.8 (report + counter-offer emails reached your Gmail).
+- ✅ (Superseded by 0.1.9 below) Email model briefly reverted to Sonnet 4.5 in 0.1.6/0.1.7 while the 5.5 parse failure was investigated.
+- ✅ Email quote adds up: itemised lines are priced at the ask and sum exactly to the quoted total ($1,240 + $200 + $350 + $1,700 = $3,490). [quote_lines](bval/my_actor/counter_email.py#L119); 3 tests in [test_email_quote.py](bval/tests/test_email_quote.py).
+- ✅ No-offer mode (22 Nov 2026): tick `offer.noOffer` and BVAL prices the creator's own package (what they fill in) plus a rate card from their numbers: Starter / Standard / Premium packages, price per post for every format, and what each extra adds. Summary lists the packages for agents. Code in [rate_card.py](bval/my_actor/rate_card.py). Form prefill fixed: offer amount 8000 → **800** to match the demo story.
+- ✅ "Your numbers, and what they prove" (22 Nov 2026): every stat BVAL pulled (audience, median views, reach, engagement, niche, market, sponsored posts, view consistency) with its benchmark and the effect on the price, ending at the per-post result. In the report, Markdown and the `evidence` field. Code in [evidence.py](bval/my_actor/evidence.py).
+- ✅ Designed counter-offer email (22 Nov 2026): the reply to the brand laid out in the report style (quote card, notes list, no BVAL branding), saved as `COUNTER_EMAIL.html`, linked from the report, and sent as a second "Ready to forward" email when `sendReportTo` is set. Sent to your Gmail from local runs of the demo deal and the no-offer case. 75 tests passing.
+- ✅ Live in build **0.1.8** (22 Nov 2026). Cloud runs on priya.fit: $800 deal ([nsYxb1wj7HqO0ytbR](https://console.apify.com/actors/runs/nsYxb1wj7HqO0ytbR)) and no offer ([9TQqpTGC2Rjg19SlD](https://console.apify.com/actors/runs/9TQqpTGC2Rjg19SlD)) both succeeded; Sonnet 4.5 wrote both emails; report and designed-email links open logged out; designed email has no BVAL branding; report + counter-offer emails sent to your Gmail.
+- ✅ Sonnet 5.5 now writes the emails (build **0.1.9**, run [6fUJ3ufldGrwEWtCu](https://console.apify.com/actors/runs/6fUJ3ufldGrwEWtCu)). Cause of the earlier failure: a strict JSON parse rejected line breaks inside the body; `_parse` now accepts them. Fallbacks: Sonnet 4.5, then gpt-4o-mini.
+- 🟡 Local only, ships with the next push: strip Markdown `**bold**` that Sonnet 5.5 adds to the email text.
+- ✅ Entry point [main.py](bval/my_actor/main.py): input (grouped or flat) → scrape or manual metrics → price → email → PPE charges → `QUOTE.html` + `QUOTE.md` → optional report email → dataset row.
+- ✅ Tests: **75 passing** (research worked examples, real fixtures, markets, inputs, reports, email digest, HTML escaping): `cd bval && .venv/bin/python -m unittest discover -s tests`.
+
+## Step 5b: Mentor feedback ([assets/inputs_from_mentors.md](assets/inputs_from_mentors.md))
+| # | Mentor ask | Status | Where |
+|---|---|---|---|
+| 1 | Mandatory vs optional fields | ✅ | Only `platform` + `handle` required; sections labelled "(required)", "(recommended)", "(optional)" |
+| 2 | Seamless, simple journey | ✅ | 7 numbered sections in the order a creator thinks: who → audience → offer → rights → extras → results; demo deal prefilled |
+| 3 | Core-value fields vs extra configurability | ✅ | Sections 1–4 carry the value; 5, 6 and Advanced are optional fine-tuning |
+| 4 | Usable by people (website/workflow) and agents; show in demo | ✅ / 🟡 | Store form + API/workflows; Claude + Apify MCP agent path in [demo_harness_plan.md](demo_harness_plan.md). Dry-run pending |
+| 5 | Self-explanatory inputs | ✅ | Plain-language titles ("You can't work with competitors for (days)"), every field has a description (tested) |
+| 6 | Group related fields, nested/hierarchical | ✅ | `offer`, `rights`, `extras`, `contract`, `manualMetrics` objects; `deliverables` list of {type, qty} |
+| 7 | Visually rich output for people, rich context for agents | ✅ | `QUOTE.html` report + `nextAction` / `summary` / `reportUrl` agent fields, plus the optional report email |
+- ✅ Deployed (grouped input since 0.1.7; live build **0.1.9**), verified in cloud runs.
+- 🟡 Look at the new form in Console (Input tab) and say if anything reads oddly.
+- 🟡 Git commit + push of everything since `3e5cbe0` (20+ files: inputs, report, rate card, evidence, email fixes, tests, config guide). Decide first where README images live (`assets/` is git-ignored because it holds the coupon notes; suggested: `.gitignore` exception for `assets/readme/` only). *Needs your OK.*
 
 ## Step 6: Schemas (Craft)
-- ✅ [input_schema.json](bval/.actor/input_schema.json): sections for offer, usage/ads/exclusivity, production, contract, market/email, advanced; prefilled demo values.
-- ✅ [dataset_schema.json](bval/.actor/dataset_schema.json): 32 fields; views "Deal verdict" and "Line items".
-- ✅ [output_schema.json](bval/.actor/output_schema.json) + [key_value_store_schema.json](bval/.actor/key_value_store_schema.json) (`QUOTE.md`).
+- ✅ [input_schema.json](bval/.actor/input_schema.json) restructured per mentor feedback: **2 required fields** (platform, handle), 15 top-level fields in 7 numbered sections, nested `offer` / `rights` / `extras` / `contract` / `manualMetrics` objects and a `deliverables` list of {type, qty} rendered as form fields (`schemaBased`), plain-language titles, `market` with country suggestions plus free entry. Validated.
+- ✅ [inputs.py](bval/my_actor/inputs.py): `normalize_input()` flattens the groups; old flat inputs still work. 10 tests in [test_inputs.py](bval/tests/test_inputs.py) (grouped = flat, every field has a title and description, only 2 required). Suite now **75 passing**.
+- ✅ [dataset_schema.json](bval/.actor/dataset_schema.json): every pushed field, including `nextAction`, `summary`, `reportUrl`, `offerValue`, `reportEmailed`; views "Deal verdict", "Counter-offer email" and "Line items".
+- ✅ [output_schema.json](bval/.actor/output_schema.json) (deal report first, then the email, verdict table, Markdown and JSON) + [key_value_store_schema.json](bval/.actor/key_value_store_schema.json) (`QUOTE.html`, `QUOTE.md`).
 - ✅ `apify validate-schema` passes.
 
 ## Step 7: Run locally, push, first cloud run
 - ✅ Local `apify run` (manual metrics): fair $2,790, verdict DECLINE_OR_REDUCE_SCOPE, `QUOTE.md` written.
-- ✅ `apify push`: build **0.1.3** live ([Console](https://console.apify.com/actors/pvlXeWRnGfAg9NI0j)). Fixed on the way: child runs need `run_name`; dropped deprecated `max_items`.
+- ✅ `apify push`: build **0.1.9** live ([Console](https://console.apify.com/actors/pvlXeWRnGfAg9NI0j)). Fixed on the way: child runs need `run_name`; dropped deprecated `max_items`.
 - ✅ First cloud run **SUCCEEDED in 56s** on @humansofny: real scrape, verdict, LLM email ([run](https://console.apify.com/actors/runs/9ebRSTXyVTfJuwTYv)).
 - 🟡 Check the Output tab in Console: "Deal verdict" view and `QUOTE.md` render. *Take a look at the run link.*
 
 ## Step 8: Publish on the Store (Console → My Actors → bval → Publishing)
-- ⏳ Display info: title, description, upload [logo/bval-logo-512.png](logo/bval-logo-512.png).
-- ⏳ Categories: AI, Social media, Marketing/Business.
-- ⏳ Sample output from the successful run; permissions **limited**.
-- 🟡 Billing details + Store Publishing Terms (you, in Console), then monetization (Step 9).
-- ⏳ Publish on Store; copy the **direct Store URL** for judges.
+- ✅ Console config guide with reasoning: [apify_console_config.md](apify_console_config.md).
+- ✅ Public profile set up (22 Nov 2026).
+- ✅ BVAL logo uploaded as the Actor icon.
+- ✅ Display info: title and description set from `actor.json`.
+- ✅ Categories: AI, Social media, Marketing.
+- ✅ Permissions **limited**; successful runs on 0.1.8 and 0.1.9.
+- ✅ Billing details, Store Publishing Terms and monetization done.
+- ✅ **Published on Apify Store** (22 Nov 2026): https://apify.com/agupta1/bval (HTTP 200 logged out; build 0.1.9).
+- ✅ Display information (22 Nov 2026): SEO title "Brand Deal & Influencer Rate Calculator for Creators | BVAL", SEO description set; categories AI, Social media, Marketing (set through the API).
 
 ## Step 9: Pricing model, pay-per-event
 - ✅ Charges wired in code, only after success: `deal-evaluated`, `manual-deal-evaluated`, `counter-email-drafted`.
 - ✅ Prices confirmed: `deal-evaluated` **$0.79**, `counter-email-drafted` **$0.20**, `manual-deal-evaluated` **$0.25** (full deal $0.99).
-- 🟡 Enter them in Console → bval → Publication → Monetization → Pay per event (after billing details). Until then the Actor logs "ignored charge" and still runs.
-- ⏳ Turn off the synthetic per-dataset-item event; do not enable "PPE + usage".
+- ✅ Pay-per-event live since 08:34 UTC 22 Nov 2026, verified through the API: `deal-evaluated` $0.79 (primary), `counter-email-drafted` $0.20, `manual-deal-evaluated` $0.25 (infrequent), `apify-actor-start` $0.00005; Apify margin 20%. Cost and profit: [BVAL pricing and unit economics](https://claude.ai/artifact/RmxTXatvE864LpsdsTt6G5).
+- ✅ Monetization form: `apify-default-dataset-item` removed, "PPE + usage" off, minimum max cost per run $1.00.
+- ⏳ Code follow-up: check the remaining spending cap before scraping (guide, open questions).
 
 ## Step 10: README that sells
-- 🔄 Writing next: hero line, buyer, problem, output screenshot, how it works (scrapers → engine → email), platform value props, markets, input table, sample output, pricing, integrations (API/MCP/agents), FAQ/limits, sources, run locally.
+- ✅ Store README [bval/README.md](bval/README.md): hero + Priya example, what it does, who it's for, why, data table, how-to, pricing, formula with sources, input/output examples, MCP/API, FAQ + data disclaimer, run locally. Deployed in build 0.1.4.
+- ✅ Repo README [README.md](README.md) with run instructions; pushed (`3e5cbe0`).
+- ⏳ Optional: add a screenshot of the Output tab to the README after Console check.
 
 ## Step 11: Polish
-- ✅ `QUOTE.md` Markdown report.
+- ✅ `QUOTE.md` Markdown report and `QUOTE.html` visual report.
+- ✅ Report and notification email restyled to match `assets/design` (bright cards, display font, drawn avatar per handle, starbursts and sparkles); 50 tests pass.
+- ✅ New look checked before push (22 Nov 2026): 60 tests, local run, page renders, injection test (script/onerror in handle, name, email and red flags) leaves no raw tags in the page or the email.
+- ✅ New look live in build 0.1.7.
+- ✅ Glass UI and phone layout: report shows as a phone (status bar, glass dock that jumps to Verdict / Reply / Price / Details) on desktop and fills the screen on a phone; glass cards and chips over colour blobs; email is phone-width with glass panels. Tests pass.
+- ✅ README graphics in the same style (`assets/readme/`: banner, how it works, who it's for, verdicts, pricing, three-phone output), built by `assets/readme/build_readme_images.py` and placed in both READMEs.
+- ✅ Glass/phone report live since build 0.1.8.
+- 🟡 README images show on the Store only after they're pushed to GitHub `main` (the Store README loads them from raw.githubusercontent.com). Until then the Store page shows broken images.
 - ✅ Error handling: bad handle, private account, unsupported platform/market → error item + failed run, no charge.
 - ✅ Local currency output (`outputCurrency: LOCAL`) for all named markets.
 - ✅ All three platforms in v1.
@@ -86,18 +128,19 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 
 ## Step 12: Final verification
 - ⏳ `apify push` final build; 3 runs from the public Store page (IG, TikTok, YouTube), each under ~60s.
-- ⏳ Check Output tab, `QUOTE.md`, README and pricing on the Store page.
+- ⏳ Check Output tab (deal report, email view, `QUOTE.md`), README and pricing on the Store page.
+- ✅ Cloud run with `sendReportTo` = your Gmail (build 0.1.8): report email and designed counter-offer email both sent.
 - ⏳ Freeze code; push to GitHub.
 
 ## Step 13: Demo prep and submit
 - ⏳ Pre-run a backup run with the exact demo input; keep the tab open.
-- ⏳ Rehearse the 2-minute script twice:
-  - **0:00–0:15 buyer:** "Priya got $800 for a Reel + 90 days usage + 30 days of ads through her handle + 6 months exclusivity. Fair?"
-  - **0:15–0:25 live run** from the public Store page.
-  - **0:25–0:55 while it runs:** "Apify's own Instagram scrapers get her real median Reel plays. The price comes from a cited, transparent engine. The LLM only writes the email."
-  - **0:55–1:35 output:** "Fair is $2,790; her $800 is below her walk-away. Exclusivity alone is worth $1,360. Here's the counter: full scope at $3,490, or a lighter version at $1,070, ready to send."
-  - **1:35–1:50 money + reach:** "$0.99 a deal, pay-per-event. Any country: the same deal is fair at $698 for an Indian audience. Agencies call it via API or MCP."
-  - **1:50–2:00 close:** "BVAL: know your worth before you reply."
+- ✅ Demo harness decided (revised 22 Nov 2026): our phone-styled pages in [demo/](demo/) for both paths: a "Check a deal" page that runs the live Actor on Apify, and a creator-agent chat page where Claude calls BVAL as a tool. Store page shown as proof it's live; claude.ai + Apify MCP as the agent backup. Plan and script: [demo_harness_plan.md](demo_harness_plan.md).
+- ✅ Demo pages + local server ([demo/server.py](demo/server.py), `demo/static/`), built by session apify-4e [fef7ec]. `demo/.venv` created; smoke test: all pages load, missing tokens give clear errors.
+- ✅ Agent page runs on a local LLM in LM Studio by default (`qwen/qwen3.5-9b`, 16k context, `http://127.0.0.1:1234/v1`, token from `LM_API_TOKEN`); `AGENT_BACKEND=claude` switches to Claude. Agent tool supports `noOffer`. Every tool call is a live run of the Apify Actor.
+- 🟡 Start the demo yourself (tokens only in your terminal): `APIFY_TOKEN=… LM_API_TOKEN=… demo/.venv/bin/python demo/server.py`, then dry-run the agent prompt 3 times.
+- ⏳ Dry-run the agent page with the DM prompt (check it fills `offer.amount`, the `rights` days and `niche: fitness`). Backup: add the Apify MCP connector in claude.ai.
+- ⏳ Pre-run a no-offer report for the 1:42 beat of the script.
+- ⏳ Rehearse the 2-minute script twice: use the version in [demo_harness_plan.md](demo_harness_plan.md) (both paths: Store page and Claude agent). Update the prices in it after the backup run if you demo a scraped handle.
 - ⏳ Submit the Google Form (team name = BVAL, Store URL, GitHub URL).
 - ⏳ Optional: post on LinkedIn/X tagging @apify.
 
