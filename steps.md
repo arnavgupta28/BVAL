@@ -23,7 +23,7 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 - ✅ Coupon **`APIFYBLR`** applied ($50 credit).
 - 🟡 Billing/payment details filled in and **Store Publishing Terms** accepted (needed for pricing + publishing). *Please confirm.*
 - ✅ Public GitHub repo: [arnavgupta28/BVAL](https://github.com/arnavgupta28/BVAL) (initial commit pushed; `assets/`, `storage/`, `.venv`, `.env` ignored).
-- 🟡 Commit + push today's work (feeders, email, markets, schemas, 40 tests, fixtures, country report). *Needs your OK.*
+- ✅ Today's work committed and pushed (`077e7d0`).
 - ⏳ Run instructions in the repo README (with Step 10).
 
 ## Step 2: Research (pricing must hold up against market data)
@@ -44,7 +44,7 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 - ✅ Markets: `resolve_market` (alias → country → regional group → global), TikTok blocked in India, China refused, offers in 11 currencies.
 - ✅ Feeders [feeders.py](bval/my_actor/feeders.py): parallel IG calls, cost/time caps per call, age windows with fallback, 0/-1 treated as missing.
 - ✅ Counter-offer email [counter_email.py](bval/my_actor/counter_email.py): LLM via Apify OpenRouter proxy, brand-facing pushback lines, deterministic template fallback.
-- 🟡 LLM email: proxy returns **403 from this laptop** (template used). Needs a check on the platform after push; if it stays 403, ship with the template email.
+- ✅ LLM email works on the platform (`anthropic/claude-sonnet-4.5` via Apify OpenRouter). Only local runs get 403 and fall back to the template.
 - ✅ Entry point [main.py](bval/my_actor/main.py): input → scrape or manual metrics → price → email → PPE charges → dataset row + `QUOTE.md`.
 - ✅ Tests: **40 passing** (3 research worked examples, real fixtures, markets, edge cases): `cd bval && .venv/bin/python -m unittest discover -s tests`.
 
@@ -56,20 +56,21 @@ Actor: **BVAL** (title) / **`bval`** (ID). Team name on the submission form must
 
 ## Step 7: Run locally, push, first cloud run
 - ✅ Local `apify run` (manual metrics): fair $2,790, verdict DECLINE_OR_REDUCE_SCOPE, `QUOTE.md` written.
-- 🟡 **`apify push`**: *needs your OK* (deploys to your account).
-- ⏳ First cloud run on a real handle (~$0.08–0.16 feeder cost) + check LLM email on platform.
-- ⏳ Check Output tab: "Deal verdict" view and `QUOTE.md` render.
+- ✅ `apify push`: build **0.1.3** live ([Console](https://console.apify.com/actors/pvlXeWRnGfAg9NI0j)). Fixed on the way: child runs need `run_name`; dropped deprecated `max_items`.
+- ✅ First cloud run **SUCCEEDED in 56s** on @humansofny: real scrape, verdict, LLM email ([run](https://console.apify.com/actors/runs/9ebRSTXyVTfJuwTYv)).
+- 🟡 Check the Output tab in Console: "Deal verdict" view and `QUOTE.md` render. *Take a look at the run link.*
 
 ## Step 8: Publish on the Store (Console → My Actors → bval → Publishing)
 - ⏳ Display info: title, description, upload [logo/bval-logo-512.png](logo/bval-logo-512.png).
 - ⏳ Categories: AI, Social media, Marketing/Business.
 - ⏳ Sample output from the successful run; permissions **limited**.
-- 🟡 Monetization (Step 9) set in Console by you.
+- 🟡 Billing details + Store Publishing Terms (you, in Console), then monetization (Step 9).
 - ⏳ Publish on Store; copy the **direct Store URL** for judges.
 
 ## Step 9: Pricing model, pay-per-event
 - ✅ Charges wired in code, only after success: `deal-evaluated`, `manual-deal-evaluated`, `counter-email-drafted`.
-- 🟡 Prices to enter in Console (from research): `deal-evaluated` **$0.79**, `counter-email-drafted` **$0.20**, `manual-deal-evaluated` **$0.25**. Full deal $0.99, half of hypebridge's ~$1.95; margin ~3–6× over feeder cost. *Confirm or adjust.*
+- ✅ Prices confirmed: `deal-evaluated` **$0.79**, `counter-email-drafted` **$0.20**, `manual-deal-evaluated` **$0.25** (full deal $0.99).
+- 🟡 Enter them in Console → bval → Publication → Monetization → Pay per event (after billing details). Until then the Actor logs "ignored charge" and still runs.
 - ⏳ Turn off the synthetic per-dataset-item event; do not enable "PPE + usage".
 
 ## Step 10: README that sells
