@@ -1,11 +1,25 @@
 {
     "$schema": "https://apify.com/schemas/v1/output.ide.json",
     "actorOutputSchemaVersion": 1,
-    "title": "Output schema",
+    "title": "BVAL deal check",
+    "description": "Verdict, itemised price range and counter-offer email for one creator deal",
     "properties": {
+        "verdict": {
+            "type": "string",
+            "title": "Deal verdict",
+            "description": "Verdict, price range and line items",
+            "template": "{{links.apiDefaultDatasetUrl}}/items?view=overview"
+        },
+        "quote": {
+            "type": "string",
+            "title": "Quote report (Markdown)",
+            "description": "Readable report with the counter-offer email",
+            "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/QUOTE.md"
+        },
         "results": {
             "type": "string",
-            "title": "Results",
+            "title": "Full results (JSON)",
+            "description": "All fields",
             "template": "{{links.apiDefaultDatasetUrl}}/items"
         }
     }

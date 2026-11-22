@@ -1,6 +1,553 @@
 {
     "$schema": "https://apify.com/schemas/v1/dataset.ide.json",
     "actorSpecification": 1,
-    "fields": {},
-    "views": {}
+    "fields": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+            "handle": {
+                "type": "string",
+                "description": "Creator handle analysed",
+                "nullable": true,
+                "example": "examplecreator"
+            },
+            "platform": {
+                "type": "string",
+                "description": "Platform priced",
+                "nullable": true,
+                "example": "instagram",
+                "enum": [
+                    "instagram",
+                    "tiktok",
+                    "youtube"
+                ]
+            },
+            "creatorName": {
+                "type": "string",
+                "description": "Display name from the profile",
+                "nullable": true,
+                "example": "Example Creator"
+            },
+            "niche": {
+                "type": "string",
+                "description": "Niche used for the niche multiplier",
+                "nullable": true,
+                "example": "fitness"
+            },
+            "market": {
+                "type": "string",
+                "description": "Audience market (ISO country code or GLOBAL)",
+                "nullable": true,
+                "example": "GLOBAL"
+            },
+            "marketName": {
+                "type": "string",
+                "description": "Human-readable market name",
+                "nullable": true,
+                "example": "Global (US benchmarks)"
+            },
+            "currency": {
+                "type": "string",
+                "description": "Currency of all display amounts",
+                "nullable": true,
+                "example": "USD"
+            },
+            "verdict": {
+                "type": "string",
+                "description": "Verdict on the brand offer",
+                "nullable": true,
+                "example": "COUNTER_TRADE_SCOPE",
+                "enum": [
+                    "ACCEPT_STRONG",
+                    "ACCEPT",
+                    "COUNTER_LIGHT",
+                    "COUNTER_TRADE_SCOPE",
+                    "DECLINE_OR_REDUCE_SCOPE",
+                    "NO_OFFER"
+                ]
+            },
+            "verdictText": {
+                "type": "string",
+                "description": "Plain-language explanation of the verdict",
+                "nullable": true,
+                "example": "Offer is well below fair value. Offer full scope at your ask, or a reduced scope at their budget."
+            },
+            "offerAmount": {
+                "type": "number",
+                "description": "Brand offer as entered",
+                "nullable": true,
+                "example": 800
+            },
+            "offerCurrency": {
+                "type": "string",
+                "description": "Currency of the brand offer",
+                "nullable": true,
+                "example": "USD"
+            },
+            "offerDisplay": {
+                "type": "string",
+                "description": "Brand offer in the display currency",
+                "nullable": true,
+                "example": "$800"
+            },
+            "gapPct": {
+                "type": "number",
+                "description": "How far the offer is below fair value, in percent (negative = above)",
+                "nullable": true,
+                "example": 71.4
+            },
+            "fairPrice": {
+                "type": "number",
+                "description": "Fair value of the requested scope, display currency",
+                "nullable": true,
+                "example": 2793.12
+            },
+            "askPrice": {
+                "type": "number",
+                "description": "Recommended opening ask (1.25x fair)",
+                "nullable": true,
+                "example": 3491.4
+            },
+            "floorPrice": {
+                "type": "number",
+                "description": "Lowest price to accept for the full scope (0.85x fair)",
+                "nullable": true,
+                "example": 2374.15
+            },
+            "walkAwayPrice": {
+                "type": "number",
+                "description": "Below this, decline or cut scope (0.85x minimum-scope value)",
+                "nullable": true,
+                "example": 910.1
+            },
+            "priceRange": {
+                "type": "object",
+                "description": "Formatted walk-away / floor / fair / ask",
+                "properties": {
+                    "walkAway": {
+                        "type": "string"
+                    },
+                    "floor": {
+                        "type": "string"
+                    },
+                    "fair": {
+                        "type": "string"
+                    },
+                    "ask": {
+                        "type": "string"
+                    }
+                },
+                "required": [],
+                "additionalProperties": true,
+                "nullable": true,
+                "example": {
+                    "walkAway": "$910",
+                    "floor": "$2,370",
+                    "fair": "$2,790",
+                    "ask": "$3,490"
+                }
+            },
+            "lineItems": {
+                "type": "array",
+                "description": "Itemised quote: deliverables, discount and every add-on with sources",
+                "nullable": true,
+                "example": [
+                    {
+                        "item": "1 x instagram reel",
+                        "kind": "deliverable",
+                        "amount": "$990",
+                        "amountValue": 992.2
+                    }
+                ],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "item": {
+                            "type": "string"
+                        },
+                        "kind": {
+                            "type": "string"
+                        },
+                        "amount": {
+                            "type": "string"
+                        },
+                        "amountValue": {
+                            "type": "number"
+                        },
+                        "pctOfBase": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "sources": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "isAssumption": {
+                            "type": "boolean"
+                        }
+                    },
+                    "required": [],
+                    "additionalProperties": true
+                }
+            },
+            "counterOptions": {
+                "type": "object",
+                "description": "Two-option close: full scope at ask, or reduced scope",
+                "properties": {
+                    "fullScope": {
+                        "type": "object",
+                        "required": [],
+                        "additionalProperties": true
+                    },
+                    "reducedScope": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "required": [],
+                        "additionalProperties": true
+                    }
+                },
+                "required": [],
+                "additionalProperties": true,
+                "nullable": true,
+                "example": {
+                    "fullScope": {
+                        "price": "$3,490",
+                        "scope": "everything the brand requested"
+                    },
+                    "reducedScope": {
+                        "price": "$1,070",
+                        "dropped": [
+                            "exclusivity",
+                            "whitelisting",
+                            "organic_usage"
+                        ]
+                    }
+                }
+            },
+            "redFlags": {
+                "type": "array",
+                "description": "Lowball or risky terms detected in the offer",
+                "nullable": true,
+                "example": [
+                    {
+                        "code": "LONG_EXCLUSIVITY",
+                        "message": "Exclusivity beyond 7 days is worth +$1,364 on its own."
+                    }
+                ],
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "string"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [],
+                    "additionalProperties": true
+                }
+            },
+            "warnings": {
+                "type": "array",
+                "description": "Terms that do not apply on this platform or market",
+                "nullable": true,
+                "example": [],
+                "items": {
+                    "type": "string"
+                }
+            },
+            "metrics": {
+                "type": "object",
+                "description": "Data the price is based on",
+                "properties": {
+                    "audience": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tier": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "medianViews": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "engagementRate": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "postsUsed": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "viewsField": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "volatility": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "sponsoredPostsInSample": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source": {
+                        "type": [
+                            "number",
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [],
+                "additionalProperties": true,
+                "nullable": true,
+                "example": {
+                    "audience": 85000,
+                    "tier": "micro",
+                    "medianViews": 42000,
+                    "engagementRate": 0.035,
+                    "postsUsed": 24,
+                    "viewsField": "videoPlayCount",
+                    "source": "scraped"
+                }
+            },
+            "confidence": {
+                "type": "string",
+                "description": "Confidence in the estimate",
+                "nullable": true,
+                "example": "medium",
+                "enum": [
+                    "high",
+                    "medium",
+                    "low",
+                    "very_low"
+                ]
+            },
+            "confidenceReasons": {
+                "type": "array",
+                "description": "Why confidence is not high",
+                "nullable": true,
+                "example": [
+                    "9 usable posts (12+ preferred)."
+                ],
+                "items": {
+                    "type": "string"
+                }
+            },
+            "taxNote": {
+                "type": "string",
+                "description": "Local tax note (prices are ex-tax)",
+                "nullable": true,
+                "example": "Prices exclude GST (18%)."
+            },
+            "counterEmail": {
+                "type": "object",
+                "description": "Ready-to-send counter-offer email",
+                "properties": {
+                    "subject": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [],
+                "additionalProperties": true,
+                "nullable": true,
+                "example": {
+                    "subject": "Re: Example Brand x Example Creator partnership",
+                    "body": "Hi Example Brand team, ..."
+                }
+            },
+            "emailGeneratedBy": {
+                "type": "string",
+                "description": "LLM model that wrote the email, or \"template\"",
+                "nullable": true,
+                "example": "anthropic/claude-sonnet-4.5"
+            },
+            "disclaimer": {
+                "type": "string",
+                "description": "Fixed disclaimer",
+                "nullable": true,
+                "example": "Benchmark-based estimate from public 2026 industry sources, not financial or legal advice."
+            },
+            "ratesVersion": {
+                "type": "string",
+                "description": "Version of the cited rates config",
+                "nullable": true,
+                "example": "2026-11-22.2"
+            },
+            "evaluatedAt": {
+                "type": "string",
+                "description": "When the deal was evaluated",
+                "nullable": true,
+                "example": "2026-11-22T12:00:00+00:00"
+            },
+            "error": {
+                "type": "string",
+                "description": "Error message if the creator could not be priced",
+                "nullable": true,
+                "example": null
+            }
+        },
+        "required": [],
+        "additionalProperties": true
+    },
+    "views": {
+        "overview": {
+            "title": "Deal verdict",
+            "description": "Verdict, price range and offer at a glance",
+            "transformation": {
+                "fields": [
+                    "handle",
+                    "platform",
+                    "verdict",
+                    "offerDisplay",
+                    "priceRange.walkAway",
+                    "priceRange.floor",
+                    "priceRange.fair",
+                    "priceRange.ask",
+                    "gapPct",
+                    "confidence",
+                    "market"
+                ],
+                "flatten": [
+                    "priceRange"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "handle": {
+                        "label": "Creator",
+                        "format": "text"
+                    },
+                    "platform": {
+                        "label": "Platform",
+                        "format": "text"
+                    },
+                    "verdict": {
+                        "label": "Verdict",
+                        "format": "text"
+                    },
+                    "offerDisplay": {
+                        "label": "Brand offer",
+                        "format": "text"
+                    },
+                    "priceRange.walkAway": {
+                        "label": "Walk-away",
+                        "format": "text"
+                    },
+                    "priceRange.floor": {
+                        "label": "Floor",
+                        "format": "text"
+                    },
+                    "priceRange.fair": {
+                        "label": "Fair",
+                        "format": "text"
+                    },
+                    "priceRange.ask": {
+                        "label": "Ask",
+                        "format": "text"
+                    },
+                    "gapPct": {
+                        "label": "Gap vs fair %",
+                        "format": "number"
+                    },
+                    "confidence": {
+                        "label": "Confidence",
+                        "format": "text"
+                    },
+                    "market": {
+                        "label": "Market",
+                        "format": "text"
+                    }
+                }
+            }
+        },
+        "lineItems": {
+            "title": "Line items",
+            "description": "Every priced term with its sources",
+            "transformation": {
+                "unwind": [
+                    "lineItems"
+                ],
+                "fields": [
+                    "handle",
+                    "item",
+                    "kind",
+                    "amount",
+                    "pctOfBase",
+                    "sources",
+                    "isAssumption"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "handle": {
+                        "label": "Creator",
+                        "format": "text"
+                    },
+                    "item": {
+                        "label": "Item",
+                        "format": "text"
+                    },
+                    "kind": {
+                        "label": "Type",
+                        "format": "text"
+                    },
+                    "amount": {
+                        "label": "Amount",
+                        "format": "text"
+                    },
+                    "pctOfBase": {
+                        "label": "% of base",
+                        "format": "number"
+                    },
+                    "sources": {
+                        "label": "Sources",
+                        "format": "array"
+                    },
+                    "isAssumption": {
+                        "label": "Assumption",
+                        "format": "boolean"
+                    }
+                }
+            }
+        }
+    }
 }

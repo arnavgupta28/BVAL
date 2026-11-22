@@ -97,8 +97,7 @@ class Terms:
     offer_amount: float | None = None
     offer_currency: str = 'USD'
     gifted_only: bool = False
-    market: str = 'global'  # global | india
-    output_currency: str = 'USD'  # USD | INR
+    market: str = 'GLOBAL'  # audience's main country, ISO 3166-1 alpha-2 (e.g. US, IN, GB, BR), or GLOBAL
 
 
 # --------------------------------------------------------------------------------------------------
@@ -183,6 +182,111 @@ def round_to(value: float, step: int) -> float:
 
 
 # --------------------------------------------------------------------------------------------------
+# Markets (audience country)
+# --------------------------------------------------------------------------------------------------
+
+_MARKET_ALIASES = {'': 'GLOBAL', 'GLOBAL': 'GLOBAL', 'WORLD': 'GLOBAL', 'INDIA': 'IN', 'UK': 'GB', 'USA': 'US'}
+_TIERS = ('nano', 'micro', 'mid', 'macro', 'mega')
+
+
+def _legacy_markets(rates: dict) -> dict:
+    """Markets table derived from the original config (GLOBAL + India) when rates.json has no `markets` key."""
+    cur = rates['currency']
+    return {
+        'default': 'GLOBAL',
+        'countries': {
+            'IN': {
+                'name': 'India', 'currency': 'INR', 'fx_per_usd': cur['usd_inr'], 'rounding': cur['rounding']['inr'],
+                'factor_by_tier': cur['india_market_factor_by_tier'], 'platform_multipliers': {},
+            'niche_overrides': {'beauty': 1.2},
+                'unavailable_platforms': ['tiktok'], 'email_language': 'en',
+                'tax': {'name': 'GST', 'pct': cur['india_gst_pct']},
+                'disclosure': 'Label the post per ASCI guidelines (e.g. #ad / #collab).',
+            },
+        },
+        'groups': {},
+        'unsupported': ['CN'],
+    }
+
+
+def resolve_market(code: str | None, rates: dict, platform: str | None = None) -> dict:
+    """Resolve an ISO country code (or GLOBAL) to its pricing factors, currency and local practicalities."""
+    markets = rates.get('markets') or _legacy_markets(rates)
+    raw = (code or '').strip().upper()
+    key = _MARKET_ALIASES.get(raw, raw)
+    if key != 'GLOBAL':
+        key = markets.get('aliases', {}).get(key, key)
+    base = {'code': 'GLOBAL', 'name': 'Global (US benchmarks)', 'currency': 'USD', 'fx_per_usd': 1.0, 'rounding': 10,
+            'factor_by_tier': {t: 1.0 for t in _TIERS}, 'platform_multipliers': {}, 'niche_overrides': {}, 'email_language': 'en',
+            'tax_note': None, 'disclosure': None, 'warnings': [], 'match': 'default'}
+    if key in ('GLOBAL', markets.get('default', 'GLOBAL')) and key not in markets.get('countries', {}):
+        return base
+    if key in markets.get('unsupported', []):
+        raise PricingError(f'Market {key} is not supported (the platforms BVAL prices are unavailable there).')
+
+    entry, match = markets.get('countries', {}).get(key), 'country'
+    if entry is None:
+        for gid, g in markets.get('groups', {}).items():
+            if key in g.get('members', []):
+                entry, match = dict(g), 'group'
+                entry.setdefault('currency', g.get('fallback_currency', 'USD'))
+                entry['name'] = f"{key} ({g.get('name', gid)})"
+                break
+    if entry is None:
+        if len(key) == 2 and key.isalpha():
+            base['warnings'] = [f'No market data for {key}; priced on global (US) benchmarks.']
+            base['code'] = key
+            return base
+        raise PricingError(f'"{code}" is not a valid market. Use an ISO country code such as US, IN, GB, BR, DE, or GLOBAL.')
+
+    if platform and platform in entry.get('unavailable_platforms', []):
+        raise PricingError(f'{platform.title()} is not available in {entry.get("name", key)}, so audiences there cannot be priced on it.')
+
+    tax = entry.get('tax') or {}
+    tax_note = f"Prices exclude {tax.get('name', 'tax')} ({tax['pct']}%)." if tax.get('pct') else None
+    fx = entry.get('fx_per_usd') if match == 'country' else (1.0 if entry.get('currency', 'USD') == 'USD' else entry.get('fx_per_usd', 1.0))
+    multipliers = {k: (1.0 if v is None else float(v)) for k, v in (entry.get('platform_multipliers') or {}).items()}
+    return {
+        **base,
+        'code': key,
+        'name': entry.get('name', key),
+        'currency': entry.get('currency', 'USD'),
+        'fx_per_usd': float(fx or 1.0),
+        'rounding': entry.get('rounding', 10),
+        'factor_by_tier': {t: float(entry['factor_by_tier'].get(t, 1.0)) for t in _TIERS},
+        'platform_multipliers': multipliers,
+        'niche_overrides': entry.get('niche_overrides', {}) or {},
+        'email_language': entry.get('email_language', 'en'),
+        'tax_note': tax_note,
+        'disclosure': entry.get('disclosure'),
+        'confidence': entry.get('confidence'),
+        'match': match,
+    }
+
+
+def fx_per_usd(currency: str, rates: dict) -> float:
+    """Units of `currency` per 1 USD, from the markets table (or the legacy INR rate)."""
+    cur = (currency or 'USD').upper()
+    if cur == 'USD':
+        return 1.0
+    markets = rates.get('markets') or _legacy_markets(rates)
+    for c in markets.get('countries', {}).values():
+        if c.get('currency') == cur and c.get('fx_per_usd'):
+            return float(c['fx_per_usd'])
+    shared = (markets.get('fx') or {}).get('per_usd', {})
+    if cur in shared:
+        return float(shared[cur])
+    raise PricingError(f'No exchange rate configured for {cur}. Give the offer in USD.')
+
+
+def market_factor(market: dict, tier: str, platform: str, deliverable: str | None = None) -> float:
+    """Effective factor = factor_by_tier[tier] x platform multiplier (a format key such as youtube_short wins)."""
+    mult = market['platform_multipliers']
+    m = mult.get(deliverable) if deliverable and deliverable in mult else mult.get(platform, 1.0)
+    return market['factor_by_tier'].get(tier, 1.0) * float(1.0 if m is None else m)
+
+
+# --------------------------------------------------------------------------------------------------
 # Core pricing
 # --------------------------------------------------------------------------------------------------
 
@@ -213,8 +317,9 @@ def price_unit(dtype: str, metrics: Metrics, terms: Terms, rates: dict, tier: st
     niche_mults = rates['niche_multipliers']
     niche = terms.niche if terms.niche in niche_mults else 'other'
     niche_mult = float(niche_mults[niche])
-    if terms.market == 'india' and niche in niche_mults.get('india_overrides', {}):
-        niche_mult = float(niche_mults['india_overrides'][niche])
+    market = resolve_market(terms.market, rates, metrics.platform)
+    if niche in market['niche_overrides']:
+        niche_mult = float(market['niche_overrides'][niche])
 
     views = metrics.median_views.get(anchor)
     method = 'views'
@@ -245,10 +350,8 @@ def price_unit(dtype: str, metrics: Metrics, terms: Terms, rates: dict, tier: st
     unit = min(max(adjusted, lo_clamp), hi_clamp)
     clamped = not math.isclose(unit, adjusted)
 
-    india_factor = 1.0
-    if terms.market == 'india':
-        india_factor = float(rates['currency']['india_market_factor_by_tier'][tier])
-        unit *= india_factor
+    mfactor = market_factor(market, tier, metrics.platform, anchor)
+    unit *= mfactor
 
     return {
         'type': dtype,
@@ -264,7 +367,7 @@ def price_unit(dtype: str, metrics: Metrics, terms: Terms, rates: dict, tier: st
         'raw': raw,
         'clampUsd': [lo_clamp, hi_clamp],
         'clamped': clamped,
-        'indiaFactor': india_factor,
+        'marketFactor': round(mfactor, 4),
         'unitUsd': unit,
     }
 
@@ -291,8 +394,8 @@ def compute_addons(content_base: float, terms: Terms, platform: str, tier: str, 
     padd = pcfg['platform_addons']
     na = _na_set(platform, rates)
     tier_mult = float(a['usage_tier_multiplier'][tier])
-    # Fixed USD minimums come from US sources; scale them like every other price in India-market mode.
-    min_scale = float(rates['currency']['india_market_factor_by_tier'][tier]) if terms.market == 'india' else 1.0
+    # Fixed USD minimums come from US sources; scale them by the same market factor as the base price.
+    min_scale = market_factor(resolve_market(terms.market, rates, platform), tier, platform)
     items: list[dict] = []
     warnings: list[str] = []
 
@@ -619,10 +722,10 @@ def evaluate_deal(metrics: Metrics, terms: Terms, rates: dict | None = None) -> 
     if metrics.platform not in rates['platforms']:
         raise PricingError(f'Unsupported platform "{metrics.platform}".')
 
-    fx = float(rates['currency']['usd_inr'])
+    fx = fx_per_usd(terms.offer_currency, rates)
     offer_usd = None
     if terms.offer_amount is not None:
-        offer_usd = terms.offer_amount / fx if terms.offer_currency.upper() == 'INR' else float(terms.offer_amount)
+        offer_usd = float(terms.offer_amount) / fx
     if terms.gifted_only and offer_usd is None:
         offer_usd = 0.0
 

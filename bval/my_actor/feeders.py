@@ -256,9 +256,9 @@ async def _run_feeder(actor_id: str, run_input: dict, max_items: int, max_usd: f
     run = await Actor.call(
         actor_id,
         run_input,
-        max_items=max_items,
-        max_total_charge_usd=Decimal(str(max_usd)),
+        max_total_charge_usd=Decimal(str(max_usd)),  # caps the scraper's pay-per-event spend per call
         timeout=timedelta(seconds=180),
+        run_name=f'bval-{actor_id.split("/")[-1]}',  # abort_with_parent only tracks named child runs
         abort_with_parent=True,
     )
     if run is None:

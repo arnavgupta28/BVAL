@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-22.2",
+  "version": "2026-11-22.3",
   "currency": {
     "base": "USD",
     "usd_inr": 93.5,
@@ -364,10 +364,7 @@
     "parenting": 0.95,
     "entertainment": 0.7,
     "gaming": 0.55,
-    "other": 1.0,
-    "india_overrides": {
-      "beauty": 1.2
-    }
+    "other": 1.0
   },
   "addons": {
     "usage_tier_multiplier": {
@@ -628,9 +625,6 @@
     "niche_multipliers.other": [
       "assumption"
     ],
-    "niche_multipliers.india_overrides.beauty": [
-      "upgrowth"
-    ],
     "addons.usage_tier_multiplier": [
       "impact_usage"
     ],
@@ -739,5 +733,1065 @@
     "negotiation.red_flag_limits.included_revisions_max": [
       "assumption"
     ]
+  },
+  "markets": {
+    "version": "2026-11-22.1",
+    "default": "GLOBAL",
+    "selection_sources": [
+      "madison_wall",
+      "datareportal_ig",
+      "datareportal_tt",
+      "datareportal_yt"
+    ],
+    "aliases": {
+      "GLOBAL": "US",
+      "UK": "GB"
+    },
+    "apply": {
+      "effective_factor": "factor_by_tier[tier] * platform_multipliers[platform]",
+      "applies_to": [
+        "clamped_unit_usd",
+        "addons.exclusivity_min_usd",
+        "addons.revisions.extra_round_min_usd",
+        "addons.whitelisting_min_usd_per_30d"
+      ],
+      "order": "clamp in US terms -> multiply by effective_factor -> package discount -> add-ons as % of content_base -> price points -> convert -> round",
+      "quote_basis": "ex_tax",
+      "rounding_rule_converted": "largest 1-2-5 step <= 10 * fx_per_usd (e.g. JPY 1000, KRW 10000, EUR 5)",
+      "fx_refresh": "optional live refresh at run time; fall back to the dated values here and return fx_as_of"
+    },
+    "countries": {
+      "US": {
+        "name": "United States",
+        "currency": "USD",
+        "fx_per_usd": 1,
+        "fx_as_of": null,
+        "fx_source": null,
+        "rounding": 10,
+        "tax": {
+          "name": "Sales tax",
+          "pct": null,
+          "note": "Creator services generally carry no sales tax; not verified per state. No tax line."
+        },
+        "factor_by_tier": {
+          "nano": 1.0,
+          "micro": 1.0,
+          "mid": 1.0,
+          "macro": 1.0,
+          "mega": 1.0
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 1.0,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "FTC: clear, prominent disclosure of any material connection (e.g. #ad or the platform's Paid partnership label), not buried in hashtags.",
+        "email_language": "en-US",
+        "confidence": "high",
+        "notes": "TikTok operates via the TikTok USDS Joint Venture since 22-23 Jan 2026.",
+        "sources": [
+          "leaddyno",
+          "later2026",
+          "nyu_jipel",
+          "macrumors_tt"
+        ]
+      },
+      "IN": {
+        "name": "India",
+        "currency": "INR",
+        "fx_per_usd": 93.5,
+        "fx_as_of": "2026-11-18",
+        "fx_source": "hdfc_fx_1",
+        "rounding": 500,
+        "tax": {
+          "name": "GST",
+          "pct": 18,
+          "note": "Quote ex-GST ('+ 18% GST'); add the line only if the creator is GST-registered. A foreign creator billing an Indian brand: the brand pays GST under reverse charge."
+        },
+        "factor_by_tier": {
+          "nano": 0.2,
+          "micro": 0.25,
+          "mid": 0.4,
+          "macro": 0.55,
+          "mega": 0.55
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": null,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [
+          "tiktok"
+        ],
+        "disclosure": "ASCI: label chosen only from Advertisement, Ad, Sponsored, Collaboration, Partnership, Employee, Free gift, or Instagram Paid Partnership; not buried in hashtags; videos <=15s without caption need an on-screen label for >=3s.",
+        "email_language": "en-IN",
+        "niche_overrides": {
+          "beauty": 1.2
+        },
+        "confidence": "medium",
+        "notes": "TikTok blocked since June 2020 under IT Act s.69A; reject platform=tiktok. Fed G.5 Oct-2026 average was 95.5167 INR/USD; 93.5 is the newer mid-Nov spot.",
+        "sources": [
+          "grynow",
+          "upgrowth",
+          "leaddyno",
+          "tryspansa",
+          "influencerfee",
+          "hdfc_fx_1",
+          "hdfc_fx_2",
+          "fed_g5",
+          "taxmann",
+          "taxaj",
+          "asci_pdf",
+          "asci_dos",
+          "businesstoday_tt",
+          "techcrunch_tt",
+          "patrika_tt"
+        ]
+      },
+      "GB": {
+        "name": "United Kingdom",
+        "currency": "GBP",
+        "fx_per_usd": 0.7523,
+        "fx_as_of": "2026-10 (monthly avg)",
+        "fx_source": "fed_g5",
+        "rounding": 10,
+        "tax": {
+          "name": "VAT",
+          "pct": 20,
+          "note": "Quote '+ VAT'; add the line only if the creator is VAT-registered (registration threshold not verified here)."
+        },
+        "factor_by_tier": {
+          "nano": 0.8,
+          "micro": 0.85,
+          "mid": 0.85,
+          "macro": 0.9,
+          "mega": 0.95
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 0.95,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "ASA/CAP + CMA (guide updated Oct 2026): upfront #ad / #advert / #advertisement; 'Supported by', 'Funded by' or 'Gifted' alone is not enough; any payment, loan or incentive counts.",
+        "email_language": "en-GB",
+        "confidence": "medium",
+        "notes": "TikTok 0.95 rests on InfluencerFee's 5-10 point gap; Kolect UK/IE medians point the other way, so 1.0 is also defensible.",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "influencerfee",
+          "diw_cpm",
+          "milx_cpm",
+          "fed_g5",
+          "vatupdate",
+          "asa_guide",
+          "asa_advice",
+          "lewis_silkin_asa",
+          "assumption"
+        ]
+      },
+      "DE": {
+        "name": "Germany",
+        "currency": "EUR",
+        "fx_per_usd": 0.893,
+        "fx_as_of": "2026-10 (monthly avg)",
+        "fx_source": "fed_g5",
+        "rounding": 10,
+        "tax": {
+          "name": "USt (MwSt)",
+          "pct": 19,
+          "note": "Quote 'zzgl. MwSt.'; add the line only if the creator is VAT-registered."
+        },
+        "factor_by_tier": {
+          "nano": 0.75,
+          "micro": 0.8,
+          "mid": 0.8,
+          "macro": 0.8,
+          "mega": 0.85
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 0.9,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "Prominent 'Werbung' or 'Anzeige' label at the start; stricter than the US on gifted products, which also need a label.",
+        "email_language": "de-DE (formal Sie)",
+        "confidence": "low",
+        "notes": "Usage buyouts quoted at 25-200% of fee for long, OOH or multi-country terms; keep global add-on % and cap perpetual/OOH at 200%.",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "influencerfee",
+          "diw_cpm",
+          "milx_cpm",
+          "kolsquare_de",
+          "fed_g5",
+          "vatupdate",
+          "nyu_jipel",
+          "assumption"
+        ]
+      },
+      "BR": {
+        "name": "Brazil",
+        "currency": "BRL",
+        "fx_per_usd": 5.1298,
+        "fx_as_of": "2026-10 (monthly avg)",
+        "fx_source": "fed_g5",
+        "rounding": 50,
+        "tax": {
+          "name": "ISS / CBS+IBS",
+          "pct": null,
+          "note": "Municipal ISS (2-5%, unverified) applies until the CBS/IBS dual-VAT reform completes in 2033. Quote ex-tax ('+ impostos'); no tax line by default."
+        },
+        "factor_by_tier": {
+          "nano": 0.2,
+          "micro": 0.25,
+          "mid": 0.38,
+          "macro": 0.5,
+          "mega": 0.55
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 1.0,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "CONAR influencer guide (effective 1 Jun 2026): clear ad identification; affiliate or commission links count as advertising; brand and creator share responsibility.",
+        "email_language": "pt-BR",
+        "confidence": "medium",
+        "notes": "Mega capped at India's 0.55 because the only 1M+ source mixes in celebrities. No TikTok/YouTube BRL data; base factor used.",
+        "sources": [
+          "veeras",
+          "inteligenciasetorial",
+          "agenciagram",
+          "influencerfee",
+          "diw_cpm",
+          "fed_g5",
+          "kpmg_br",
+          "conar_propmark",
+          "conar_contabeis",
+          "conar_uai",
+          "assumption"
+        ]
+      },
+      "ID": {
+        "name": "Indonesia",
+        "currency": "IDR",
+        "fx_per_usd": 18255,
+        "fx_as_of": "2026-11-19",
+        "fx_source": "bisnis_idr",
+        "rounding": 100000,
+        "tax": {
+          "name": "PPN (VAT)",
+          "pct": 12,
+          "note": "12% headline rate (PwC); effective rate on services may be 11% (unverified). Quote ex-PPN; add the line only if the creator is registered."
+        },
+        "factor_by_tier": {
+          "nano": 0.15,
+          "micro": 0.25,
+          "mid": 0.35,
+          "macro": 0.4,
+          "mega": 0.45
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 2.0,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "Clear sponsored label on every paid post; local rule specifics (ad ethics code EPI) not verified.",
+        "email_language": "id-ID",
+        "confidence": "medium",
+        "notes": "TikTok priced 1.5-2x Instagram locally; 2.0 converts that to BVAL's TikTok unit, which is 0.6x the Reel CPM in the US. Social platforms may not process payments: in-app checkout must run via TikTok Shop/Tokopedia (red flag otherwise). Whitelisting/dark posts are a separately priced right.",
+        "sources": [
+          "contentgrip_id",
+          "contentgrip_cost",
+          "influencerfee",
+          "diw_cpm",
+          "bisnis_idr",
+          "pwc_vat",
+          "apf_id",
+          "jakartapost_id",
+          "dfdl_id",
+          "assumption"
+        ]
+      },
+      "MX": {
+        "name": "Mexico",
+        "currency": "MXN",
+        "fx_per_usd": 18.4464,
+        "fx_as_of": "2026-10 (monthly avg)",
+        "fx_source": "fed_g5",
+        "rounding": 100,
+        "tax": {
+          "name": "IVA",
+          "pct": 16,
+          "note": "16% is unverified in this research; confirm before showing a tax line. Quote '+ IVA'."
+        },
+        "factor_by_tier": {
+          "nano": 0.22,
+          "micro": 0.3,
+          "mid": 0.4,
+          "macro": 0.5,
+          "mega": 0.55
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 1.0,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "Clear sponsored label on every paid post; PROFECO / consumer-law specifics not verified.",
+        "email_language": "es-MX",
+        "confidence": "low",
+        "notes": "No credible tiered MXN rate card exists; Expansion reports no per-deal data until a 2027 industry mapping. Factors rest on the YouTube CPM ratio (above Brazil's) and InfluencerFee.",
+        "sources": [
+          "influencerfee",
+          "diw_cpm",
+          "ytmoney_cpm",
+          "expansion_mx",
+          "cronoshare_mx",
+          "fed_g5",
+          "assumption"
+        ]
+      },
+      "CA": {
+        "name": "Canada",
+        "currency": "CAD",
+        "fx_per_usd": 1.4135,
+        "fx_as_of": "2026-10 (monthly avg)",
+        "fx_source": "fed_g5",
+        "rounding": 10,
+        "tax": {
+          "name": "GST/HST",
+          "pct": 5,
+          "note": "Federal GST 5% plus provincial PST/HST that varies by province. Quote '+ applicable taxes'."
+        },
+        "factor_by_tier": {
+          "nano": 0.85,
+          "micro": 0.9,
+          "mid": 0.9,
+          "macro": 0.95,
+          "mega": 0.95
+        },
+        "platform_multipliers": {
+          "instagram": 1.0,
+          "tiktok": 0.95,
+          "youtube": 1.0,
+          "youtube_short": 1.0
+        },
+        "unavailable_platforms": [],
+        "disclosure": "Ad Standards: #ad or #sponsored up front in each post (not #partner or #brand); a one-time bio disclosure is not enough.",
+        "email_language": "en-CA (fr-CA for Quebec)",
+        "confidence": "low",
+        "notes": "Sources conflict: Kolect per-view 1.19x US vs InfluencerFee ~0.70x; 0.90 is the blend.",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "influencerfee",
+          "diw_cpm",
+          "milx_cpm",
+          "fed_g5",
+          "vatupdate",
+          "creatordb_reg",
+          "assumption"
+        ]
+      }
+    },
+    "groups": {
+      "tier1_english": {
+        "name": "Other Tier-1 English",
+        "members": [
+          "AU",
+          "NZ",
+          "IE",
+          "JE",
+          "GG",
+          "IM"
+        ],
+        "factor_by_tier": {
+          "nano": 0.8,
+          "micro": 0.85,
+          "mid": 0.85,
+          "macro": 0.9,
+          "mega": 0.9
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "AU": "AUD",
+          "NZ": "NZD",
+          "IE": "EUR",
+          "JE": "GBP",
+          "GG": "GBP",
+          "IM": "GBP"
+        },
+        "email_language": "en",
+        "confidence": "medium",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "influencerfee",
+          "diw_cpm",
+          "milx_cpm",
+          "ytmoney_cpm"
+        ]
+      },
+      "western_europe": {
+        "name": "Western Europe and Nordics",
+        "members": [
+          "FR",
+          "NL",
+          "BE",
+          "LU",
+          "AT",
+          "CH",
+          "LI",
+          "MC",
+          "SE",
+          "NO",
+          "DK",
+          "FI",
+          "IS",
+          "FO",
+          "GL",
+          "AX",
+          "PM"
+        ],
+        "factor_by_tier": {
+          "nano": 0.65,
+          "micro": 0.7,
+          "mid": 0.7,
+          "macro": 0.72,
+          "mega": 0.75
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "FR": "EUR",
+          "NL": "EUR",
+          "BE": "EUR",
+          "LU": "EUR",
+          "AT": "EUR",
+          "MC": "EUR",
+          "FI": "EUR",
+          "CH": "CHF",
+          "LI": "CHF",
+          "SE": "SEK",
+          "NO": "NOK",
+          "DK": "DKK",
+          "AX": "EUR",
+          "PM": "EUR"
+        },
+        "email_language": "en",
+        "confidence": "low",
+        "notes": "France (largest member) derives at 0.62-0.70; lifted slightly for NL/CH/Nordics, whose ad CPMs sit near Germany's. FR labels require specific wording; FR rate cards quote ex-media-rights.",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "influencerfee",
+          "diw_cpm",
+          "milx_cpm",
+          "ytmoney_cpm",
+          "matriochka",
+          "dla_piper",
+          "assumption"
+        ]
+      },
+      "southern_europe": {
+        "name": "Southern Europe and Israel",
+        "members": [
+          "ES",
+          "IT",
+          "PT",
+          "GR",
+          "MT",
+          "CY",
+          "AD",
+          "SM",
+          "VA",
+          "GI",
+          "IL"
+        ],
+        "factor_by_tier": {
+          "nano": 0.52,
+          "micro": 0.57,
+          "mid": 0.57,
+          "macro": 0.6,
+          "mega": 0.62
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "ES": "EUR",
+          "IT": "EUR",
+          "PT": "EUR",
+          "GR": "EUR",
+          "MT": "EUR",
+          "CY": "EUR",
+          "AD": "EUR",
+          "SM": "EUR",
+          "VA": "EUR"
+        },
+        "email_language": "en",
+        "confidence": "low",
+        "notes": "ES ~0.60 and IT ~0.57 from Kolect per-view with a 0.9 haircut. IL placed here by assumption.",
+        "sources": [
+          "kolect_rates",
+          "kolect_cpm",
+          "ytmoney_cpm",
+          "dla_piper",
+          "assumption"
+        ]
+      },
+      "eastern_europe": {
+        "name": "Central and Eastern Europe",
+        "members": [
+          "PL",
+          "CZ",
+          "SK",
+          "HU",
+          "RO",
+          "BG",
+          "HR",
+          "SI",
+          "RS",
+          "BA",
+          "ME",
+          "MK",
+          "AL",
+          "XK",
+          "UA",
+          "MD",
+          "EE",
+          "LV",
+          "LT",
+          "BY",
+          "RU"
+        ],
+        "factor_by_tier": {
+          "nano": 0.2,
+          "micro": 0.25,
+          "mid": 0.28,
+          "macro": 0.32,
+          "mega": 0.35
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "SK": "EUR",
+          "SI": "EUR",
+          "EE": "EUR",
+          "LV": "EUR",
+          "LT": "EUR",
+          "HR": "EUR"
+        },
+        "email_language": "en",
+        "confidence": "very_low",
+        "notes": "YouTube CPM ratio 0.12-0.25 (PL 0.25), nudged up per the emerging-market pattern. RU/BY not covered by any source.",
+        "sources": [
+          "ytmoney_cpm",
+          "assumption"
+        ]
+      },
+      "turkiye_central_asia": {
+        "name": "Turkiye, Caucasus and Central Asia",
+        "members": [
+          "TR",
+          "AZ",
+          "GE",
+          "AM",
+          "KZ",
+          "UZ",
+          "KG",
+          "TJ",
+          "TM",
+          "MN"
+        ],
+        "factor_by_tier": {
+          "nano": 0.15,
+          "micro": 0.2,
+          "mid": 0.25,
+          "macro": 0.3,
+          "mega": 0.35
+        },
+        "fallback_currency": "USD",
+        "member_currency": {},
+        "email_language": "en",
+        "confidence": "very_low",
+        "notes": "Turkiye YouTube CPM ratio 0.07 (DIW) / 0.12 (RevenueLab) scaled by the India pattern; no rate cards.",
+        "sources": [
+          "diw_cpm",
+          "ytmoney_cpm",
+          "assumption"
+        ]
+      },
+      "latin_america": {
+        "name": "Latin America and Caribbean (ex BR, MX)",
+        "members": [
+          "AR",
+          "CO",
+          "CL",
+          "PE",
+          "EC",
+          "UY",
+          "PY",
+          "BO",
+          "VE",
+          "CR",
+          "PA",
+          "GT",
+          "HN",
+          "SV",
+          "NI",
+          "BZ",
+          "DO",
+          "CU",
+          "HT",
+          "JM",
+          "TT",
+          "BS",
+          "BB",
+          "LC",
+          "VC",
+          "GD",
+          "AG",
+          "DM",
+          "KN",
+          "GY",
+          "SR",
+          "PR",
+          "VI",
+          "AW",
+          "CW",
+          "SX",
+          "BQ",
+          "KY",
+          "BM",
+          "TC",
+          "VG",
+          "AI",
+          "MS",
+          "GF",
+          "GP",
+          "MQ",
+          "BL",
+          "MF",
+          "FK"
+        ],
+        "factor_by_tier": {
+          "nano": 0.18,
+          "micro": 0.22,
+          "mid": 0.32,
+          "macro": 0.42,
+          "mega": 0.45
+        },
+        "fallback_currency": "USD",
+        "member_currency": {},
+        "email_language": "es",
+        "confidence": "low",
+        "notes": "Set just below Brazil/Mexico: CO/AR CPMs (0.08-0.11 of US) trail BR/MX (0.12-0.14).",
+        "sources": [
+          "ytmoney_cpm",
+          "influencerfee",
+          "assumption"
+        ]
+      },
+      "south_asia": {
+        "name": "South Asia (ex IN)",
+        "members": [
+          "PK",
+          "BD",
+          "LK",
+          "NP",
+          "BT",
+          "MV",
+          "AF"
+        ],
+        "factor_by_tier": {
+          "nano": 0.15,
+          "micro": 0.18,
+          "mid": 0.28,
+          "macro": 0.38,
+          "mega": 0.4
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "LK": "LKR"
+        },
+        "email_language": "en",
+        "confidence": "very_low",
+        "notes": "PK/BD YouTube CPM 1.00 vs India 1.50; India's factors scaled by ~0.7.",
+        "sources": [
+          "ytmoney_cpm",
+          "assumption"
+        ]
+      },
+      "southeast_asia": {
+        "name": "Southeast Asia (ex ID)",
+        "members": [
+          "PH",
+          "VN",
+          "TH",
+          "MY",
+          "KH",
+          "MM",
+          "LA",
+          "BN",
+          "TL"
+        ],
+        "factor_by_tier": {
+          "nano": 0.15,
+          "micro": 0.2,
+          "mid": 0.25,
+          "macro": 0.3,
+          "mega": 0.3
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "PH": "PHP",
+          "TH": "THB",
+          "MY": "MYR"
+        },
+        "email_language": "en",
+        "confidence": "low",
+        "notes": "Anchored on the Philippines (DMSM nano PHP 1,000-5,000; mega from PHP 150,000) and InfluencerFee's SEA index 10-25.",
+        "sources": [
+          "spiralytics_ph",
+          "influencerfee",
+          "ytmoney_cpm",
+          "inquirer_php",
+          "assumption"
+        ]
+      },
+      "east_asia_developed": {
+        "name": "Developed East Asia (ex CN)",
+        "members": [
+          "JP",
+          "KR",
+          "TW",
+          "HK",
+          "MO",
+          "SG"
+        ],
+        "factor_by_tier": {
+          "nano": 0.6,
+          "micro": 0.6,
+          "mid": 0.65,
+          "macro": 0.65,
+          "mega": 0.65
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "JP": "JPY",
+          "KR": "KRW",
+          "TW": "TWD",
+          "HK": "HKD",
+          "SG": "SGD"
+        },
+        "email_language": "en",
+        "confidence": "low",
+        "notes": "Japan derives at 0.70-0.75 (YouTube ~1.0) and Singapore at ~0.30; KR/TW CPM ratios 0.42-0.44. Japan is under-priced here by ~15%; promote JP to a named country first.",
+        "sources": [
+          "tatap",
+          "influencerfee",
+          "ytmoney_cpm",
+          "diw_cpm",
+          "assumption"
+        ]
+      },
+      "gulf": {
+        "name": "Gulf (GCC)",
+        "members": [
+          "AE",
+          "SA",
+          "QA",
+          "KW",
+          "BH",
+          "OM"
+        ],
+        "factor_by_tier": {
+          "nano": 0.5,
+          "micro": 0.55,
+          "mid": 0.55,
+          "macro": 0.6,
+          "mega": 0.65
+        },
+        "fallback_currency": "USD",
+        "member_currency": {},
+        "email_language": "en",
+        "confidence": "very_low",
+        "notes": "UAE 0.55-0.70 (InfluencerFee only); Saudi ad CPM sources disagree ~3x.",
+        "sources": [
+          "influencerfee",
+          "ytmoney_cpm",
+          "diw_cpm",
+          "keepface_ae",
+          "assumption"
+        ]
+      },
+      "mena_other": {
+        "name": "Rest of Middle East and North Africa",
+        "members": [
+          "EG",
+          "MA",
+          "DZ",
+          "TN",
+          "LY",
+          "SD",
+          "JO",
+          "LB",
+          "IQ",
+          "SY",
+          "YE",
+          "PS",
+          "IR",
+          "EH"
+        ],
+        "factor_by_tier": {
+          "nano": 0.12,
+          "micro": 0.15,
+          "mid": 0.2,
+          "macro": 0.25,
+          "mega": 0.3
+        },
+        "fallback_currency": "USD",
+        "member_currency": {},
+        "email_language": "en",
+        "confidence": "very_low",
+        "sources": [
+          "ytmoney_cpm",
+          "assumption"
+        ]
+      },
+      "sub_saharan_africa": {
+        "name": "Sub-Saharan Africa",
+        "members": [
+          "NG",
+          "ZA",
+          "KE",
+          "GH",
+          "ET",
+          "TZ",
+          "UG",
+          "RW",
+          "SN",
+          "CI",
+          "CM",
+          "AO",
+          "MZ",
+          "ZM",
+          "ZW",
+          "BW",
+          "NA",
+          "MW",
+          "MG",
+          "MU",
+          "SC",
+          "CD",
+          "CG",
+          "GA",
+          "GQ",
+          "BJ",
+          "TG",
+          "BF",
+          "ML",
+          "NE",
+          "TD",
+          "CF",
+          "SS",
+          "ER",
+          "DJ",
+          "SO",
+          "GM",
+          "GN",
+          "GW",
+          "SL",
+          "LR",
+          "CV",
+          "ST",
+          "KM",
+          "LS",
+          "SZ",
+          "MR",
+          "RE",
+          "YT"
+        ],
+        "factor_by_tier": {
+          "nano": 0.12,
+          "micro": 0.15,
+          "mid": 0.2,
+          "macro": 0.25,
+          "mega": 0.3
+        },
+        "fallback_currency": "USD",
+        "member_currency": {
+          "ZA": "ZAR"
+        },
+        "email_language": "en",
+        "confidence": "very_low",
+        "notes": "YouTube CPM ratio 0.08-0.18 (ZA highest).",
+        "sources": [
+          "ytmoney_cpm",
+          "assumption"
+        ]
+      },
+      "rest_of_world": {
+        "name": "Catch-all for any unlisted code (Pacific islands etc.)",
+        "members": [
+          "FJ",
+          "PG",
+          "SB",
+          "VU",
+          "WS",
+          "TO",
+          "KI",
+          "TV",
+          "NR",
+          "FM",
+          "MH",
+          "PW",
+          "NC",
+          "PF",
+          "GU",
+          "AS",
+          "MP",
+          "CK",
+          "NU",
+          "KP",
+          "UM",
+          "SH",
+          "PN",
+          "TK",
+          "WF",
+          "NF",
+          "CX",
+          "CC",
+          "IO",
+          "AQ",
+          "BV",
+          "HM",
+          "TF",
+          "GS",
+          "SJ"
+        ],
+        "factor_by_tier": {
+          "nano": 0.15,
+          "micro": 0.2,
+          "mid": 0.25,
+          "macro": 0.3,
+          "mega": 0.35
+        },
+        "fallback_currency": "USD",
+        "member_currency": {},
+        "email_language": "en",
+        "confidence": "very_low",
+        "sources": [
+          "assumption"
+        ],
+        "notes": "Engine maps ANY code not found in countries, groups or unsupported here."
+      }
+    },
+    "unsupported": [
+      "CN"
+    ],
+    "unsupported_reason": {
+      "CN": "Instagram, YouTube and international TikTok are unavailable; creators use Douyin, RED and Bilibili."
+    },
+    "fx": {
+      "note": "Group member currencies for optional local display; named countries carry their own fx_per_usd.",
+      "as_of": "2026-10 (monthly avg) unless stated",
+      "source": "fed_g5",
+      "per_usd": {
+        "EUR": 0.893,
+        "GBP": 0.7523,
+        "AUD": 1.431,
+        "NZD": 1.774,
+        "CHF": 0.8289,
+        "SEK": 9.96,
+        "NOK": 9.45,
+        "DKK": 6.68,
+        "JPY": 157.9748,
+        "KRW": 1337.36,
+        "TWD": 32.27,
+        "HKD": 7.85,
+        "SGD": 1.2801,
+        "THB": 33.65,
+        "MYR": 4.08,
+        "LKR": 331.4,
+        "ZAR": 16.57,
+        "PHP": 62.87
+      },
+      "exceptions": {
+        "PHP": {
+          "as_of": "2026-10-14",
+          "source": "inquirer_php"
+        }
+      }
+    },
+    "sources": {
+      "assumption": "BVAL design choice or interpolation; not a published figure",
+      "madison_wall": "https://www.netinfluencer.com/advertiser-spending-on-creators-to-reach-116b-usd-in-2026-report-shows/",
+      "datareportal_ig": "https://datareportal.com/essential-instagram-stats",
+      "datareportal_tt": "https://datareportal.com/essential-tiktok-stats",
+      "datareportal_yt": "https://datareportal.com/essential-youtube-stats",
+      "leaddyno": "https://www.leaddyno.com/blog/influencer-pricing",
+      "later2026": "https://later.com/blog/influencer-pricing-benchmarks-the-complete-2026-guide/",
+      "grynow": "https://www.grynow.in/blog/influencer-marketing-cost-in-india.html",
+      "upgrowth": "https://upgrowth.in/influencer-marketing-pricing-india-2026/",
+      "tryspansa": "https://dev.to/tryspansa/influencer-rate-card-what-brands-should-pay-43oj",
+      "influencerfee": "https://influencerfee.com/blog/influencer-pricing-by-country/",
+      "kolect_rates": "https://www.kolect.ai/guides/influencer-rates",
+      "kolect_cpm": "https://www.kolect.ai/reports/influencer-cpm-benchmarks-2026",
+      "diw_cpm": "https://www.digitalinformationworld.com/2025/08/youtube-cpm-rates-in-2025-how-location.html",
+      "milx_cpm": "https://milx.app/trends/which-countries-have-the-best-youtube-cpm-rates-in-2025",
+      "ytmoney_cpm": "https://ytmoneycalculator.com/blog/youtube-cpm-rates-by-country/",
+      "kolsquare_de": "https://www.kolsquare.com/de/blog/wie-viel-kostet-influencer-marketing-im-jahr-2025",
+      "matriochka": "https://www.cbnews.fr/node/102945",
+      "veeras": "https://veeras.com.br/blog/quanto-custa-contratar-influenciador-digital",
+      "inteligenciasetorial": "https://inteligenciasetorial.com.br/marketing/quanto-cobrar-por-publipost-no-tiktok/",
+      "agenciagram": "https://agenciagram.com.br/blog/como-ser-micro-influenciador-instagram-2026",
+      "contentgrip_id": "https://contentgrip.com/influencer-marketing-indonesia/",
+      "contentgrip_cost": "https://contentgrip.com/influencer-marketing-cost/",
+      "expansion_mx": "https://expansion.mx/mercadotecnia/2026/10/13/cuanto-dinero-llega-influencers-intermediacion-calculo",
+      "cronoshare_mx": "https://www.cronoshare.com.mx/cuanto-cuesta/contratar-influencer",
+      "tatap": "https://tatap.jp/knowledge/influencer-marketing-costs/",
+      "spiralytics_ph": "https://www.spiralytics.com/blog/influencer-marketing-philippines",
+      "keepface_ae": "https://keepface.com/site/?p=8751",
+      "fed_g5": "https://www.federalreserve.gov/releases/g5/20261102/",
+      "hdfc_fx_1": "https://hdfcsky.com/news/rupee-rises-24-paise-to-93-27-against-us-dollar-in-early-trade-november-18-2026",
+      "hdfc_fx_2": "https://hdfcsky.com/news/rupee-falls-8-paise-to-close-at-94-20-against-us-dollar",
+      "bisnis_idr": "https://market.bisnis.com/read/20261119/93/2022767/rupiah-ditutup-melemah-ke-rp18255-per-dolar-as-hari-ini-1911",
+      "inquirer_php": "https://business.inquirer.net/617575/peso-breaches-63-61-level",
+      "taxmann": "https://www.taxmann.com/post/blog/opinion-impact-of-gst-on-social-media-influencers/",
+      "taxaj": "https://www.taxaj.com/learn/gst-and-income-tax-for-influencers-and-content-creators-in-india-2026/",
+      "vatupdate": "https://www.vatupdate.com/2026/07/25/global-vat-rates-by-country-2026-standard-and-reduced-rates/",
+      "pwc_vat": "https://taxsummaries.pwc.com/quick-charts/value-added-tax-vat-rates",
+      "kpmg_br": "https://kpmg.com/kpmg-us/content/dam/kpmg/taxnewsflash/pdf/2026/digitalized-economy-taxation-developments-summary.pdf",
+      "nyu_jipel": "https://jipel.law.nyu.edu/disclosure-requirements-for-influencer-marketing-in-the-u-s-and-germany/",
+      "asa_guide": "https://www.asa.org.uk/resource/influencers-guide.html",
+      "asa_advice": "https://www.asa.org.uk/news/ad-vice-making-clear-that-an-ad-is-an-ad.html",
+      "lewis_silkin_asa": "https://www.lewissilkin.com/insights/2026/10/23/new-influencer-guidance-from-the-asa-cap-and-cma-what-has-changed-and-what-to-d-102o6ar",
+      "asci_pdf": "https://www.ascionline.in/social/wp-content/uploads/2025/04/ASCI-Influencer-Guidelines.pdf",
+      "asci_dos": "https://www.ascionline.in/social/dos-dont/",
+      "conar_propmark": "https://propmark.com.br/artigos/o-novo-guia-do-conar-para-influenciadores-e-os-riscos-da-falta-de-transparencia/",
+      "conar_contabeis": "https://www.contabeis.com.br/artigos/77061/conar-novas-regras-para-influenciadores-e-ia-a-partir-de-1o-de-junho/",
+      "conar_uai": "https://www.uai.com.br/networking-e-negocios/2026/09/23/ganha-comissao-com-link-de-afiliado-para-o-conar-isso-ja-e-publicidade/",
+      "creatordb_reg": "https://creatordb.app/blog/regulation-english/",
+      "dla_piper": "https://www.dlapiper.com/news/2025/09/dla-piper-unpacks-influencer-marketing-rules-with-updated-and-expanded-global-guide",
+      "macrumors_tt": "https://www.macrumors.com/2026/01/23/tiktok-avoids-us-ban-deal-officially-closes/",
+      "businesstoday_tt": "https://www.businesstoday.in/india/story/no-comeback-for-tiktok-indian-govt-refutes-reports-of-ban-being-lifted-on-chinese-apps-490769-2025-08-23",
+      "techcrunch_tt": "https://techcrunch.com/2025/08/22/tiktok-denies-india-comeback-after-reports-of-website-going-live",
+      "patrika_tt": "https://www.patrika.com/en/national-news/tiktok-ban-in-india-not-lifted-says-modi-government-19886142",
+      "apf_id": "https://www.asiapacific.ca/publication/indonesias-new-e-commerce-regulations-take-bite-out-tiktoks",
+      "jakartapost_id": "https://www.thejakartapost.com/business/2023/09/27/indonesia-bans-goods-transactions-on-social-media-platforms",
+      "dfdl_id": "https://www.dfdl.com/insights/legal-and-tax-updates/indonesia-ecommerce-regulation-permendag-19-2026/"
+    }
   }
 }

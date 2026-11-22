@@ -1,0 +1,16 @@
+{
+    "$schema": "https://apify.com/schemas/v1/key-value-store.ide.json",
+    "actorKeyValueStoreSchemaVersion": 1,
+    "title": "BVAL quote",
+    "description": "Human-readable deal report",
+    "collections": {
+        "quote": {
+            "title": "Quote report",
+            "description": "Markdown deal report: verdict, price range, line items, red flags and the counter-offer email",
+            "key": "QUOTE.md",
+            "contentTypes": [
+                "text/markdown"
+            ]
+        }
+    }
+}
